@@ -24,3 +24,10 @@ eigenlayer operator config create
 # $RPC_URL
 # $ECDSA_PATH
 # holesky
+
+# add holesky to metamask manually
+# Ethereum Holesky
+# https://ethereum-holesky-rpc.publicnode.com
+# 17000
+# ETH
+# https://holesky.beaconcha.in/
