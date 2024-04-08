@@ -18,16 +18,26 @@ export RPC_URL="https://ethereum-holesky-rpc.publicnode.com"
 
 # Register operator
 eigenlayer operator config create
-# y
-# $ECDSA_ADDRESS
-# $ECDSA_ADDRESS
-# $RPC_URL
-# $ECDSA_PATH
-# holesky
+# inputs:
+#     y
+#     $ECDSA_ADDRESS
+#     $ECDSA_ADDRESS
+#     $RPC_URL
+#     $ECDSA_PATH
+#     holesky
 
-# add holesky to metamask manually
-# Ethereum Holesky
-# https://ethereum-holesky-rpc.publicnode.com
-# 17000
-# ETH
-# https://holesky.beaconcha.in/
+# Additional steps:
+# 1. Add Holesky to Metamask manually
+# inputs:
+#     Ethereum Holesky
+#     https://ethereum-holesky-rpc.publicnode.com
+#     17000
+#     ETH
+#     https://holesky.beaconcha.in/
+# 2. Fund operator.yaml address with 1 holETH
+# 3. Upload .png logo to Github
+# 4. Add logo url to metadata.json and upload to Github
+# 5. Add metadata.json url to operator.yaml
+
+# eigenlayer operator register operator.yaml
+# $PASSWORD
