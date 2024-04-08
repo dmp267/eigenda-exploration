@@ -1,4 +1,4 @@
-# EigenDA-dClimate Case Study
+# EigenDA Exploration
 
 ### Prerequisite:
 * [Install Docker](https://docs.docker.com/engine/install/)
