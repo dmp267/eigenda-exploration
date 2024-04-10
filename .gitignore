@@ -1,3 +1,5 @@
 operator.yaml
 .DS_Store
 __pycache__/
+Counter.*
+lib
