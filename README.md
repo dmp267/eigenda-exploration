@@ -1,5 +1,6 @@
 # EigenDA Exploration
-This repository contains exploratory work around the operation of Eigenlayer and EigenDA nodes. Setups for the Holesky testnet and Ethereum Mainnet have been provided.
+This repository contains exploratory work around the operation of Eigenlayer nodes and EigenDA. So far, a setup for Holesky testnet has been provided.
+To begin, clone this repo and make sure you have all prerequisites installed
 
 ### Prerequisite:
 * [Install Docker](https://docs.docker.com/engine/install/)
@@ -16,4 +17,3 @@ This repository contains exploratory work around the operation of Eigenlayer and
 
 For network specific instructions, follow the links below
 ### [Holesky](https://github.com/dmp267/eigenda-exploration/tree/main/holesky)
-### [Mainnet](https://github.com/dmp267/eigenda-exploration/tree/main/mainnet)

@@ -24,7 +24,7 @@
     ```
         eigenlayer operator keys list
     ```
-    3. Obtain at least 1 holETH from a [faucet](https://docs.eigenlayer.xyz/eigenlayer/restaking-guides/restaking-user-guide/stage-2-testnet/obtaining-testnet-eth-and-liquid-staking-tokens-lsts#obtain-holesky-eth-aka-holeth-via-a-faucet) and transfer to the address from step 2
+    3. Obtain at least 1 HolETH from a [faucet](https://docs.eigenlayer.xyz/eigenlayer/restaking-guides/restaking-user-guide/stage-2-testnet/obtaining-testnet-eth-and-liquid-staking-tokens-lsts#obtain-holesky-eth-aka-holeth-via-a-faucet) and transfer to the address from step 2
     4. Run the command below and provide details from step 2 as well as an RPC URL from [here](https://chainlist.org/chain/17000) or the one added to Metamask above
     ```
         eigenlayer operator config create
@@ -36,18 +36,18 @@
     ```
 * Prepare Local EigenDA files
     
-    1. Clone [this repo](https://github.com/Layr-Labs/eigenda-operator-setup/tree/master/) and execute the following commands:
+    1. Clone [this operator repo](https://github.com/Layr-Labs/eigenda-operator-setup/tree/master/) and execute the following commands:
     ```
         git clone https://github.com/Layr-Labs/eigenda-operator-setup.git
         cd eigenda-operator-setup/holesky
         cp .env.example .env
     ```
-    2. Manually update the .env file downloaded in the steps above. Modify all sections marked with TODO to match your environment
-    3. Create local folders which are required by EigenDA
+    2. Create local folders which are required by EigenDA in the next step
     ```
         mkdir -p $HOME/.eigenlayer/eigenda/holesky/logs
         mkdir -p $HOME/.eigenlayer/eigenda/holesky/db
     ```
+    3. Manually update the .env file downloaded in the steps above. Modify all sections marked with TODO to match your environment
 
 
 
