@@ -1,8 +1,8 @@
 import grpc
 import subprocess
 
-from proto.disperser.disperser_pb2 import DisperseBlobRequest, DisperseBlobResponse, GetBlobStatusRequest, GetBlobStatusResponse
-from proto.disperser.disperser_pb2_grpc import DisperserStub
+from disperser.disperser_pb2 import DisperseBlobRequest, DisperseBlobResponse, GetBlobStatusRequest, GetBlobStatusResponse
+from disperser.disperser_pb2_grpc import DisperserStub
 
 
 def encode_data(data):
