@@ -1,4 +1,4 @@
-import json
+import os
 import time
 import grpc
 import subprocess
@@ -12,8 +12,20 @@ from pad_one_byte_codec import convert_by_padding_empty_byte, remove_empty_byte_
 # BLOB_INDEX = 150
 
 
+def find_kzgpad():
+    repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    parent = os.path.dirname(repo_root)
+    grandparent = os.path.dirname(parent)
+    if 'eigenda' in os.listdir(parent):
+        path = os.path.join(parent, 'eigenda/tools/kzgpad/bin/kzgpad')
+    else:
+        path = os.path.join(grandparent, 'Layr-Labs/eigenda/tools/kzgpad/bin/kzgpad')
+    return path
+
+
 def encode_data(data: bytes):
-    result = subprocess.run(["../../../Layr-Labs/eigenda/tools/kzgpad/bin/kzgpad", "-e", data], capture_output=True, text=True).stdout.strip()
+    path = find_kzgpad()
+    result = subprocess.run([path, "-e", data], capture_output=True, text=True).stdout.strip()
     result_bytes = bytes(result, "utf-8")
     valid_bytes = convert_by_padding_empty_byte(result_bytes)
     return valid_bytes
@@ -22,11 +34,12 @@ def encode_data(data: bytes):
 def decode_data(data: bytes):
     reconverted_data = remove_empty_byte_from_padded_bytes(data)
     reconverted_str = reconverted_data.decode("utf-8")
-    result = subprocess.run(["../../../Layr-Labs/eigenda/tools/kzgpad/bin/kzgpad", "-d", "-"], input=reconverted_str, capture_output=True, text=True).stdout.strip()
+    path = find_kzgpad()
+    result = subprocess.run([path, "-d", "-"], input=reconverted_str, capture_output=True, text=True).stdout.strip()
     return result
 
-def main(data: bytes):
 
+def main(data: bytes):
     channel = grpc.secure_channel("disperser-holesky.eigenda.xyz:443", grpc.ssl_channel_credentials())
     stub = DisperserStub(channel)
 
