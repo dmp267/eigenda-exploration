@@ -1,7 +1,7 @@
 import grpc
 import subprocess
 
-from disperser.disperser_pb2 import DisperseBlobRequest, DisperseBlobResponse, GetBlobStatusRequest, GetBlobStatusResponse
+from disperser.disperser_pb2 import DisperseBlobRequest, GetBlobStatusRequest
 from disperser.disperser_pb2_grpc import DisperserStub
 
 
