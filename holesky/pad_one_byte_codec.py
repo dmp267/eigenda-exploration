@@ -1,3 +1,4 @@
+# https://docs.eigenlayer.xyz/eigenda/rollup-guides/blob-encoding
 BYTES_PER_SYMBOL = 32
 
 
@@ -21,10 +22,10 @@ def convert_by_padding_empty_byte(data):
             valid_end = end - start + 1 + i * BYTES_PER_SYMBOL
         
         # With big endian, setting the first byte to 0 ensures data is within the valid range
-        valid_data[i * BYTES_PER_SYMBOL] = 0x00
+        valid_data[i * BYTES_PER_SYMBOL] = 0
         valid_data[i * BYTES_PER_SYMBOL + 1: (i + 1) * BYTES_PER_SYMBOL] = data[start:end]
     
-    return valid_data[:valid_end]
+    return bytes(valid_data[:valid_end])
 
 
 def remove_empty_byte_from_padded_bytes(data):
@@ -48,4 +49,4 @@ def remove_empty_byte_from_padded_bytes(data):
         
         valid_data[i * put_size: (i + 1) * put_size] = data[start:end]
     
-    return valid_data[:valid_len]
+    return bytes(valid_data[:valid_len])
