@@ -1,7 +1,7 @@
 import grpc
 import subprocess
 
-from disperser.disperser_pb2 import DisperseBlobRequest, GetBlobStatusRequest
+from disperser.disperser_pb2 import DisperseBlobRequest, BlobStatusRequest
 from disperser.disperser_pb2_grpc import DisperserStub
 
 
@@ -21,7 +21,7 @@ def main(data):
     print(response)
 
     try:
-        request = GetBlobStatusRequest(request_id=response.request_id)
+        request = BlobStatusRequest(request_id=response.request_id)
         response = stub.GetBlobStatus(request)
         print(response)
     except Exception as e:
