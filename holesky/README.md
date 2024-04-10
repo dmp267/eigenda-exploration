@@ -5,7 +5,8 @@ This repository contains exploratory work around the use of EigenDA as a data av
 * [Install Conda](https://docs.anaconda.com/free/distro-or-miniconda/)
 * [Install Go](https://go.dev/doc/install)
 
-* Run the following:
+## Testing
+* To test the Hello World script, run the following:
 ```
     mkdir eigenda-setup && cd eigenda-setup
     git clone https://github.com/dmp267/eigenda-exploration.git
@@ -19,4 +20,3 @@ This repository contains exploratory work around the use of EigenDA as a data av
 
     python hello_world.py
 ```
-* Clone the [Layr-Labs/EigenDA repo](https://github.com/Layr-Labs/eigenda/tree/master)
