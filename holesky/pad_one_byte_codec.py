@@ -1,4 +1,5 @@
-# https://docs.eigenlayer.xyz/eigenda/rollup-guides/blob-encoding
+# helper functions for guaranteeing the validity of the data to be dispersed to EigenDA
+# converted from go example at https://docs.eigenlayer.xyz/eigenda/rollup-guides/blob-encoding
 BYTES_PER_SYMBOL = 32
 
 

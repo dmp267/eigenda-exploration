@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import grpc
 import subprocess
 
@@ -8,6 +9,7 @@ from disperser.disperser_pb2_grpc import DisperserStub
 from pad_one_byte_codec import convert_by_padding_empty_byte, remove_empty_byte_from_padded_bytes
 
 # REQUEST_ID = b"957434148dfb72996233652510c80d0aaa257d8f3958acee0eb3b50b4ec43c3c-313731323737333839323439343139383234312f302f33332f312f33332fe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+# REQUEST_ID = b"6bd58d333d752fe4937659a990bd60c24f5bd76b05e4741f8259118ed7fbbff5-313731323835303830363037343239333034372f302f33332f312f33332fe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 # BATCH_HEADER_HASH = b"\325%\242\255~\306\377j\367\005&\027\177\032c#\353\226\267\272\261C\367a\376XOz\225\220w\373"
 # BLOB_INDEX = 150
 
@@ -58,6 +60,10 @@ def main(data: bytes):
         print(f'status_response: {"CONFIRMED" if status_response == 2 else "PROCESSING"}')
         if status_response.status == 2: # CONFIRMED
             processing = False
+            print(status_response)
+            # write response to json file
+            with open('proof.json', 'w') as f:
+                json.dump(status_response.info, f)
         else:
             print('sleeping')
             time.sleep(20)
@@ -74,7 +80,7 @@ def main(data: bytes):
     stored_data = bytes(retrieve_response.data)
     result = decode_data(stored_data)
     print(result)
-
+    
 
 if __name__ == "__main__":
-    main(b"hello world")
+    main(b"blob storage test 2")

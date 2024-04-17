@@ -27,7 +27,7 @@ If deploying new smart contracts:
     python hello_world.py
 ```
 
-* To deploy the verifier smart contract, obtain a [Holesky RPC URL](https://chainlist.org/chain/17000) and the private key of an Ethereum wallet with a sufficient (>=0.1) HolETH balance and run the following:
+* To deploy the verifier smart contract, obtain a [Holesky RPC URL](https://chainlist.org/chain/17000), an [Etherscan API key](https://etherscan.io/), and the private key of an Ethereum wallet with a sufficient (>=0.1) HolETH balance and run the following:
 ```
     cd foundry
     forge install --no-git Layr-Labs/eigenlayer-contracts Layr-Labs/eigenlayer-middleware Layr-Labs/eigenda
