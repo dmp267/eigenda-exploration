@@ -28,7 +28,7 @@ If deploying new smart contracts:
 ```
 If you observe issues with imports move the example file to this directory and retry.
 
-* To test the verifier smart contract, obtain a [Holesky RPC URL](https://chainlist.org/chain/17000), an [Etherscan API key](https://etherscan.io/), and the private key of an Ethereum wallet with a sufficient (>=0.1) HolETH balance and run the following:
+* To test the verifier smart contract, obtain a [Holesky RPC URL](https://chainlist.org/chain/17000) and run the following:
 ```
     cd foundry
     forge install --no-git Layr-Labs/eigenlayer-contracts Layr-Labs/eigenlayer-middleware Layr-Labs/eigenda
@@ -37,11 +37,22 @@ If you observe issues with imports move the example file to this directory and r
     # in another window
     forge script script/BlobVerification.s.sol --rpc-url http://127.0.0.1:8545
 ```
-<!-- "
-    forge test
-    forge create --rpc-url $RPC_URL \
+
+
+## Components
+* To run the IPFS node, assuming you have initialized the necessary IPFS directories, run
+```
+ipfs daemon
+```
+* To run the Flask app, assuming you have activated the Conda environment above, run
+```
+python -m flask app.py
+```
+* To deploy the verifier smart contract, assuming you have an RPC URL, an [Etherscan API key](https://etherscan.io/), and a >0.1 HolETH balance, run
+```
+forge create --rpc-url $RPC_URL \
         --private-key $PRIVATE_KEY \
         --etherscan-api-key $ETHERSCAN_API_KEY \
         --verify \
         src/BlobVerifier.sol
-        " -->
+```
