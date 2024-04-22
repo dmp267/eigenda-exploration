@@ -15,12 +15,12 @@ contract BlobVerifierDeployer is Script {
         quorumBlobParams[0] = IEigenDAServiceManager.QuorumBlobParam(
             /*quorumNumber*/ 0,
             /*adversaryThresholdPercentage*/ 33,
-            /*quorumThresholdPercentage*/ 50,
-            /*chunkLength*/1);
+            /*quorumThresholdPercentage*/ 55,
+            /*chunkLength*/ 1);
         quorumBlobParams[1] = IEigenDAServiceManager.QuorumBlobParam(
             /*quorumNumber*/ 1,
             /*adversaryThresholdPercentage*/ 33,
-            /*quorumThresholdPercentage*/ 50,
+            /*quorumThresholdPercentage*/ 55,
             /*chunkLength*/ 1);
 
         IEigenDAServiceManager.BlobHeader memory blobHeader = IEigenDAServiceManager.BlobHeader(
@@ -37,7 +37,7 @@ contract BlobVerifierDeployer is Script {
             = IEigenDAServiceManager.BatchHeader(
                 /*bytes32 blobHeadersRoot*/ bytes32(blobRoot),
                 /*bytes quorumNumbers*/ hex"0001",
-                /*bytes quorumThresholdPercentages*/ hex"5650", // pad base64 to mult of 4 chars, decode b64, then convert to hex?
+                /*bytes quorumThresholdPercentages*/ hex"5650",
                 /*uint32 referenceBlockNumber*/ 1326297
             );
 
@@ -48,19 +48,14 @@ contract BlobVerifierDeployer is Script {
                 /*uint32 confirmationBlockNumber*/ 1326405
             );
 
-        // bytes memory firstBlobHash = abi.encodePacked(EigenDAHasher.hashBlobHeader(blobHeader));
-        // bytes memory proof = abi.encodePacked(keccak256(firstBlobHash));
-        // console.logBytes(proof);
-
         EigenDARollupUtils.BlobVerificationProof memory blobVerificationProof
-            = EigenDARollupUtils.BlobVerificationProof(
-                /*uint32 batchId*/ 9886,
-                /*uint32 blobIndex*/ 244,
-                batchMetadata,
-                /*bytes inclusionProof*/ hex"635af3a774906c593ab765ea5f377bc8274ed336ab1c1557a9066bc1af661175ac564b8ccc43650c526ee51438c1a206583b7cd5948cccd4ebf49dd95d64fe94b9b5137b1b2b5757b9521f180f1abb5298503c838344479f20928bc5e88d6bf1d55a043e82bb2ae182f9792acfcca7230b0b078b9a027ca356f993d282b5a36f12c58b8394a2d5782ed698c83696fe09fae62cb32f18d1657f5eea0f8bc52f0087853c4cc707e5db62a40c738cf29c465eff8edc604a3d0ee315cf0435a39d2cbbff5cfdcba55a9c22ad8bf29391d372950d506a8e110c182aaf5323a9c4c1728abab16822150e70383a9d9a918fcc0ad29e343b9d27db09e967dec494f48738c030d3abc04ca526ad3ffa9a22a83e899545ff5e584fdc206d350e553ad47a4c",
-                // proof,
-                /*bytes quorumThresholdIndexes*/ hex"0001"
-            );
+            = EigenDARollupUtils.BlobVerificationProof({
+                /*uint32 batchId*/ batchId: 9886,
+                /*uint32 blobIndex*/ blobIndex: 244,
+                batchMetadata: batchMetadata,
+                /*bytes inclusionProof*/ inclusionProof: hex"635af3a774906c593ab765ea5f377bc8274ed336ab1c1557a9066bc1af661175ac564b8ccc43650c526ee51438c1a206583b7cd5948cccd4ebf49dd95d64fe94b9b5137b1b2b5757b9521f180f1abb5298503c838344479f20928bc5e88d6bf1d55a043e82bb2ae182f9792acfcca7230b0b078b9a027ca356f993d282b5a36f12c58b8394a2d5782ed698c83696fe09fae62cb32f18d1657f5eea0f8bc52f0087853c4cc707e5db62a40c738cf29c465eff8edc604a3d0ee315cf0435a39d2cbbff5cfdcba55a9c22ad8bf29391d372950d506a8e110c182aaf5323a9c4c1728abab16822150e70383a9d9a918fcc0ad29e343b9d27db09e967dec494f48738c030d3abc04ca526ad3ffa9a22a83e899545ff5e584fdc206d350e553ad47a4c",
+                /*bytes quorumThresholdIndexes*/ quorumIndices: hex"0001"
+    });
 
         EigenDARollupUtils.verifyBlob(blobHeader, IEigenDAServiceManager(eigenDAServiceManager), blobVerificationProof);
 

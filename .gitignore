@@ -3,3 +3,5 @@ operator.yaml
 __pycache__/
 Counter.*
 lib
+out
+cache
