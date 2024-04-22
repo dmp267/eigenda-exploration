@@ -22,10 +22,11 @@ If deploying new smart contracts:
 
     cd eigenda
     make build
-    cd ../eigenda-exploration/holesky
+    cd ../eigenda-exploration/holesky/attestations/examples
 
     python hello_world.py
 ```
+If you observe issues with imports move the example file to this directory and retry.
 
 * To test the verifier smart contract, obtain a [Holesky RPC URL](https://chainlist.org/chain/17000), an [Etherscan API key](https://etherscan.io/), and the private key of an Ethereum wallet with a sufficient (>=0.1) HolETH balance and run the following:
 ```

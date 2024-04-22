@@ -1,6 +1,5 @@
 # EigenDA Exploration -- Holesky
-This repository contains exploratory work around the operation of Eigenlayer nodes and EigenDA. So far, a setup for Holesky testnet has been provided.
-To begin, clone this repo and make sure you have all prerequisites installed
+This repository was originally intended to provide working setups for running EigenDA operator nodes but has since been abandoned. Whatever data is here remains for easier re-examination in the future.
 
 ### Prerequisite:
 * [Install Docker](https://docs.docker.com/engine/install/)
