@@ -1,24 +1,23 @@
 # flask app
 import os
-from flask import Flask, jsonify
+from flask import request, Flask, jsonify
 
 from utils import pull_ipfs, push_eigenda, pull_eigenda
 
 app = Flask(__name__)
 
 
-@app.route('/disperse', methods=['POST'])
-def disperse(data):
-    cid = data.get('cid')
+@app.route('/disperse/<cid>', methods=['GET', 'POST'])
+def disperse(cid: str):
+    # print(f'cid: {cid}')
     ipfs_data = pull_ipfs(cid)
+    # print(f'ipfs_data: {ipfs_data.decode()}')
     result = push_eigenda(ipfs_data)
     return jsonify(result)
 
 
-@app.route('/retrieve', methods=['GET'])
-def retrieve(data):
-    batch_header_hash = data.get('batch_header_hash')
-    blob_index = data.get('blob_index')
+@app.route('/retrieve/<batch_header_hash>/<blob_index>', methods=['GET'])
+def retrieve(batch_header_hash: str, blob_index: int):
     result = pull_eigenda(batch_header_hash, blob_index)
     return jsonify(result)
 
