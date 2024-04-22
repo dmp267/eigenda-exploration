@@ -33,11 +33,11 @@ If you observe issues with imports move the example file to this directory and r
 * To test the verifier smart contract, obtain a [Holesky RPC URL](https://chainlist.org/chain/17000) and run the following:
 ```
     cd foundry
-    forge install --no-git Layr-Labs/eigenlayer-contracts Layr-Labs/eigenlayer-middleware Layr-Labs/eigenda
+    forge install --no-git Layr-Labs/eigenlayer-contracts Layr-Labs/eigenlayer-middleware Layr-Labs/eigenda OpenZeppelin/openzeppelin-contracts
     forge build
     anvil --fork-url $RPC_URL
     # in another window
-    forge script script/BlobVerification.s.sol --rpc-url http://127.0.0.1:8545
+    forge script script/BlobVerify.s.sol --rpc-url http://127.0.0.1:8545
 ```
 
 

@@ -6,7 +6,7 @@ import "forge-std/console.sol";
 import {EigenDARollupUtils, IEigenDAServiceManager, BN254, EigenDAHasher} from "../lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol";
 
 
-contract BlobVerifierDeployer is Script {
+contract BlobVerify is Script {
     function run() external {
         vm.startBroadcast();
 
