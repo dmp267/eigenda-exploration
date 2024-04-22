@@ -15,8 +15,17 @@ DISPERSER = "disperser-holesky.eigenda.xyz:443"
 
 channel = grpc.secure_channel(DISPERSER, grpc.ssl_channel_credentials())
 stub = DisperserStub(channel)
-daemon = multiaddr.Multiaddr(f'/dns4/{HOST}/tcp/{PORT}/https')
-client = ipfshttpclient.connect(daemon, ipfs_timeout=None, session=True)
+daemon = multiaddr.Multiaddr(f'/dns4/{HOST}/tcp/{PORT}/http')
+client = ipfshttpclient.connect(daemon, timeout=None, session=True)
+
+
+def pull_ipfs(cid: str):
+    try:
+        data = client.cat(cid)
+        return data
+    except Exception as e:
+        print(f'error pulling ipfs cid {cid}: {e}')
+        raise e
 
 
 # helper functions for guaranteeing the validity of the data to be dispersed to EigenDA
@@ -134,14 +143,4 @@ def pull_eigenda(batch_header_hash: str, blob_index: int):
     stored_data = bytes(retrieve_response.data)
     result = decode_retrieval(stored_data)
     return result
-
-
-def pull_ipfs(cid: str):
-    try:
-        data = client.cat(cid)
-        return data
-    except Exception as e:
-        print(f'error pulling ipfs cid {cid}: {e}')
-        raise e
-
     

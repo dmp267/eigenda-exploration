@@ -1,6 +1,7 @@
 # EigenDA Exploration -- Holesky
 This repository contains instructions on how to run each of the components for this service.
 
+
 ### Prerequisites:
 * [Install Conda](https://docs.anaconda.com/free/distro-or-miniconda/)
 * [Install Go](https://go.dev/doc/install)
@@ -10,6 +11,7 @@ If deploying new smart contracts:
 <!-- * [Install npm](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)
 * [Install Hardhat](https://hardhat.org/hardhat-runner/docs/getting-started#installation) -->
 * [Install Foundry and Foundryup](https://book.getfoundry.sh/getting-started/installation)
+
 
 ## Examples
 * To test the Hello World script, run the following:
@@ -22,9 +24,9 @@ If deploying new smart contracts:
 
     cd eigenda
     make build
-    cd ../eigenda-exploration/holesky/attestations/examples
+    cd ../eigenda-exploration/holesky
 
-    python hello_world.py
+    python attestations/examples/hello_world.py
 ```
 If you observe issues with imports move the example file to this directory and retry.
 
@@ -46,7 +48,7 @@ ipfs daemon
 ```
 * To run the Flask app, assuming you have activated the Conda environment above, run
 ```
-python -m flask app.py
+python app.py
 ```
 * To deploy the verifier smart contract, assuming you have an RPC URL, an [Etherscan API key](https://etherscan.io/), and a >0.1 HolETH balance, run
 ```

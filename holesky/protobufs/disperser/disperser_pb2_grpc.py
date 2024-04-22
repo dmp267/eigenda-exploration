@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from disperser import disperser_pb2 as disperser_dot_disperser__pb2
+from protobufs.disperser import disperser_pb2 as disperser_dot_disperser__pb2
 
 
 class DisperserStub(object):
