@@ -118,6 +118,7 @@ def push_eigenda(data: bytes):
     result = ''
     while processing:
         status_request = BlobStatusRequest(request_id=disperse_response.request_id)
+        # status_request = BlobStatusRequest(request_id=b'd54401a174b7bb4acad7faa755ac6537f53f81018640826c7eb3694577d1e447-313731333831303536383633313030303235322f302f33332f312f33332fe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
         status_response = stub.GetBlobStatus(status_request)
         print(f'status_response: {"CONFIRMED" if status_response == 2 else "PROCESSING"}')
         if status_response.status == 2: # CONFIRMED

@@ -118,9 +118,11 @@ contract BlobVerifier is Ownable {
         string memory cid // calldata limit
     ) external onlyOwner {
         uint index = storageDetailsIndex[cid];
-        if (storageDetailsIndex[cid] == 0) {
+        if (index == 0) {
             initializeStorageDetail(cid);
-        } 
+        }
+
+        index = storageDetailsIndex[cid] - 1;
         storageDetails[index].blobHeader = ModifiedBlobHeader({
             commitment: BN254.G1Point(x, y),
             dataLength: dataLength,
@@ -145,6 +147,8 @@ contract BlobVerifier is Ownable {
         if (index == 0) {
             initializeStorageDetail(cid);
         } 
+
+        index = storageDetailsIndex[cid] - 1;
         storageDetails[index].blobVerificationProof.batchMetadata = IEigenDAServiceManager.BatchMetadata({
             batchHeader: IEigenDAServiceManager.BatchHeader({
                 blobHeadersRoot: blobHeadersRoot,
@@ -169,6 +173,8 @@ contract BlobVerifier is Ownable {
         if (index == 0) {
             initializeStorageDetail(cid);
         } 
+
+        index = storageDetailsIndex[cid] - 1;
         storageDetails[index].blobVerificationProof = EigenDARollupUtils.BlobVerificationProof({
             batchId: batchId,
             blobIndex: blobIndex,
@@ -187,7 +193,7 @@ contract BlobVerifier is Ownable {
     {
         uint index = storageDetailsIndex[cid];
         require(index > 0, "BlobVerifier: invalid cid");
-        StorageDetail memory _storageDetails = storageDetails[index];
+        StorageDetail memory _storageDetails = storageDetails[index - 1];
         IEigenDAServiceManager _eigenDAServiceManager = IEigenDAServiceManager(serviceManagerAddress);
 
         IEigenDAServiceManager.QuorumBlobParam[] memory _quorumBlobParams = new IEigenDAServiceManager.QuorumBlobParam[](_storageDetails.blobHeader.quorumNumbers.length);

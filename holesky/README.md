@@ -24,9 +24,9 @@ If deploying new smart contracts:
 
     cd eigenda
     make build
-    cd ../eigenda-exploration/holesky
+    cd ../eigenda-exploration/holesky/examples
 
-    python attestations/examples/hello_world.py
+    python hello_world.py
 ```
 If you observe issues with imports move the example file to this directory and retry.
 
@@ -38,6 +38,8 @@ If you observe issues with imports move the example file to this directory and r
     anvil --fork-url $RPC_URL
     # in another window
     forge script script/BlobVerify.s.sol --rpc-url http://127.0.0.1:8545
+    # or to deploy before verifying run
+    forge script script/BlobDeployAndVerify.s.sol --rpc-url http://127.0.0.1:8545
 ```
 
 
