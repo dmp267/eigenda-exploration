@@ -34,6 +34,7 @@ contract BlobDeployAndVerify is Script {
             1,
             17709391318787797331642701840504388161158975750185246830022501631687012546893,
             5511369121926248436136882980770562785844228494401429094386919117721689758478,
+            hex"829b163ab6bafa5474f6e6a99fcde9ee2e5978e9c75a0670700e92748a2a3f95",
             quorumNumbers,
             adversaryThresholdPercentages,
             confirmationThresholdPercentages,
@@ -42,9 +43,9 @@ contract BlobDeployAndVerify is Script {
         );
 
         blobVerifier.setBatchMetadata(
-            0xdd5ceff68423495260173cc698a7cb12eead967f43239e58fec53af966863154,
+            hex"dd5ceff68423495260173cc698a7cb12eead967f43239e58fec53af966863154",
             1398800,
-            0xdf69a32cd0589de5096ce85b627c40c390551a03bc3e1415213686422fa18bbf,
+            hex"df69a32cd0589de5096ce85b627c40c390551a03bc3e1415213686422fa18bbf",
             1398667,
             hex"0001",
             hex"6362",

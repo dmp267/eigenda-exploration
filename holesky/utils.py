@@ -2,6 +2,7 @@ import os
 import time
 import subprocess
 import grpc
+import json
 import ipfshttpclient, multiaddr
 
 from protobufs.disperser.disperser_pb2 import DisperseBlobRequest, BlobStatusRequest, RetrieveBlobRequest
@@ -19,7 +20,7 @@ daemon = multiaddr.Multiaddr(f'/dns4/{HOST}/tcp/{PORT}/http')
 client = ipfshttpclient.connect(daemon, timeout=None, session=True)
 
 
-def pull_ipfs(cid: str):
+def retrieve_from_ipfs(cid: str):
     try:
         data = client.cat(cid)
         return data
@@ -105,9 +106,61 @@ def decode_retrieval(data: bytes):
     path = find_kzgpad()
     result = subprocess.run([path, "-d", "-"], input=reconverted_str, capture_output=True, text=True).stdout.strip()
     return result
+    
+
+def transform_response(info):
+    if len(info.blob_header.blob_quorum_params) > 1:
+        blob_quorum_params = []
+        for params in info.blob_header.blob_quorum_params:
+            adversary_threshold_percentage = int(params.adversary_threshold_percentage)
+            confirmation_threshold_percentage = int(params.confirmation_threshold_percentage)
+            chunk_length = int(params.chunk_length)
+            if hasattr(params, 'quorum_number'):
+                quorum_number = int(params.quorum_number)
+            else:
+                quorum_number = 0
+            bqp = {"quorum_number": quorum_number,
+                   "adversary_threshold_percentage": adversary_threshold_percentage, 
+                   "confirmation_threshold_percentage": confirmation_threshold_percentage, 
+                   "chunk_length": chunk_length}
+            blob_quorum_params.append(bqp)
+    else:
+        if type(info.blob_verification_proof.blob_quorum_params) != list:
+            blob_quorum_params = [info.blob_verification_proof.blob_quorum_params]
+        else:
+            blob_quorum_params = info.blob_verification_proof.blob_quorum_params
+    proof_details = {
+        "blob_header": {
+            "commitment": {
+                "x": int.from_bytes(info.blob_header.commitment.x, "big"),
+                "y": int.from_bytes(info.blob_header.commitment.y, "big"),
+            },
+            "data_length": int(info.blob_header.data_length),
+            "blob_quorum_params": blob_quorum_params,
+        },
+        "blob_verification_proof": {
+            "batch_id": info.blob_verification_proof.batch_id,
+            "blob_index": info.blob_verification_proof.blob_index,
+            "batch_metadata": {
+                "batch_header": {
+                    "batch_root": info.blob_verification_proof.batch_metadata.batch_header.batch_root.hex(),
+                    "quorum_numbers": info.blob_verification_proof.batch_metadata.batch_header.quorum_numbers.hex(),
+                    "quorum_signed_percentages": info.blob_verification_proof.batch_metadata.batch_header.quorum_signed_percentages.hex(),
+                    "reference_block_number": int(info.blob_verification_proof.batch_metadata.batch_header.reference_block_number),
+                },
+                "signatory_record_hash": info.blob_verification_proof.batch_metadata.signatory_record_hash.hex(),
+                "fee": info.blob_verification_proof.batch_metadata.fee.hex(),
+                "confirmation_block_number": int(info.blob_verification_proof.batch_metadata.confirmation_block_number),
+                "batch_header_hash": info.blob_verification_proof.batch_metadata.batch_header_hash.hex()
+            },
+            "inclusion_proof": info.blob_verification_proof.inclusion_proof.hex(),
+            "quorum_indexes": info.blob_verification_proof.quorum_indexes.hex(),
+        }
+    }
+    return proof_details
 
 
-def push_eigenda(data: bytes):
+def disperse_to_eigenda(cid: str, data: bytes):
     encoded_data = encode_for_dispersal(data)   
     disperse_request = DisperseBlobRequest(data=encoded_data)
 
@@ -118,17 +171,13 @@ def push_eigenda(data: bytes):
     result = ''
     while processing:
         status_request = BlobStatusRequest(request_id=disperse_response.request_id)
-        # status_request = BlobStatusRequest(request_id=b'd54401a174b7bb4acad7faa755ac6537f53f81018640826c7eb3694577d1e447-313731333831303536383633313030303235322f302f33332f312f33332fe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
         status_response = stub.GetBlobStatus(status_request)
         print(f'status_response: {"CONFIRMED" if status_response == 2 else "PROCESSING"}')
         if status_response.status == 2: # CONFIRMED
             processing = False
             print(status_response)
-            # write response to text file
-            result = str(status_response.info)
-            with open('proof.txt', 'w') as f:
-                f.write(result)
-                f.close()
+            result = transform_response(status_response.info)
+            json.dump(result, open(f'attestations/{cid}.json', 'w'))
         else:
             print('sleeping')
             time.sleep(60)
@@ -136,7 +185,7 @@ def push_eigenda(data: bytes):
     return result
 
 
-def pull_eigenda(batch_header_hash: str, blob_index: int):
+def retrieve_from_eigenda(batch_header_hash: str, blob_index: int):
     retrieve_request = RetrieveBlobRequest(batch_header_hash=batch_header_hash, blob_index=blob_index)
     retrieve_response = stub.RetrieveBlob(retrieve_request)
     print(retrieve_response)
@@ -144,4 +193,3 @@ def pull_eigenda(batch_header_hash: str, blob_index: int):
     stored_data = bytes(retrieve_response.data)
     result = decode_retrieval(stored_data)
     return result
-    

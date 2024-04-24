@@ -51,6 +51,7 @@ contract BlobVerifier is Ownable {
     struct ModifiedBlobHeader {
         BN254.G1Point commitment;
         uint32 dataLength;
+        bytes32 batchHeaderHash;
         uint8[] quorumNumbers;
         uint8[] adversaryThresholdPercentages;
         uint8[] confirmationThresholdPercentages; 
@@ -72,6 +73,17 @@ contract BlobVerifier is Ownable {
     constructor(address owner) Ownable(owner) {}
 
 
+    function readStorageDetail(string calldata cid) 
+        external 
+        view 
+        returns (StorageDetail memory) 
+    {
+        uint index = storageDetailsIndex[cid];
+        require(index > 0, "BlobVerifier: invalid cid");
+        return storageDetails[index - 1];
+    }
+
+
     function initializeStorageDetail(string memory cid) private {
         if (storageDetailsIndex[cid] == 0) {
             uint index = storageDetails.length;
@@ -81,6 +93,7 @@ contract BlobVerifier is Ownable {
                 blobHeader: ModifiedBlobHeader({
                     commitment: BN254.G1Point(0, 0),
                     dataLength: 0,
+                    batchHeaderHash: bytes32(0),
                     quorumNumbers: new uint8[](0),
                     adversaryThresholdPercentages: new uint8[](0),
                     confirmationThresholdPercentages: new uint8[](0),
@@ -111,10 +124,11 @@ contract BlobVerifier is Ownable {
         uint32 dataLength,
         uint256 x,
         uint256 y,
+        bytes32 batchHeaderHash,
         uint8[] calldata quorumNumbers,
         uint8[] calldata adversaryThresholdPercentages,
         uint8[] calldata confirmationThresholdPercentages,
-        uint32[] calldata chunkLengths,
+        uint32[] memory chunkLengths, // calldata limit
         string memory cid // calldata limit
     ) external onlyOwner {
         uint index = storageDetailsIndex[cid];
@@ -126,6 +140,7 @@ contract BlobVerifier is Ownable {
         storageDetails[index].blobHeader = ModifiedBlobHeader({
             commitment: BN254.G1Point(x, y),
             dataLength: dataLength,
+            batchHeaderHash: batchHeaderHash,
             quorumNumbers: quorumNumbers,
             adversaryThresholdPercentages: adversaryThresholdPercentages,
             confirmationThresholdPercentages: confirmationThresholdPercentages,

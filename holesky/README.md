@@ -58,5 +58,13 @@ forge create --rpc-url $RPC_URL \
         --private-key $PRIVATE_KEY \
         --etherscan-api-key $ETHERSCAN_API_KEY \
         --verify \
-        src/BlobVerifier.sol
+        lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol:EigenDARollupUtils
+# get the DEPLOYED_ADDRESS
+forge create --rpc-url $RPC_URL \
+        --constructor-args $WALLET_ADDRESS \
+        --private-key $PRIVATE_KEY \
+        --etherscan-api-key $ETHERSCAN_API_KEY \
+        --verify \
+        src/BlobVerifier.sol:BlobVerifier \
+        --libraries lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol:EigenDARollupUtils:$DEPLOYED_ADDRESS
 ```

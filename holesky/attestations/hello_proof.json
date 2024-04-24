@@ -1,0 +1,41 @@
+{
+    "blob_header": {
+        "commitment": {
+            "x": 9417834077271167056398452684138541730023247605767970835369225932031796937535,
+            "y": 13672145000712398904740515119007673891472123666435862248973737087001396956734
+        },
+        "data_length": 1,
+        "blob_quorum_params": [
+            {
+                "quorum_number": 0,
+                "adversary_threshold_percentage": 33,
+                "confirmation_threshold_percentage": 55,
+                "chunk_length": 1
+            },
+            {
+                "quorum_number": 1,
+                "adversary_threshold_percentage": 33,
+                "confirmation_threshold_percentage": 55,
+                "chunk_length": 1
+            }
+        ]
+    },
+    "blob_verification_proof": {
+        "batch_id": 11812,
+        "blob_index": 795,
+        "batch_metadata": {
+            "batch_header": {
+                "batch_root": "387dfa29f25080d187c2c67cd7651bc69c88ed7ed90fa7047a913d23313e48ea",
+                "quorum_numbers": "0001",
+                "quorum_signed_percentages": "6360",
+                "reference_block_number": 1410412
+            },
+            "signatory_record_hash": "d64af6619c315db354eba4adf248453392576b40f3f6827085581f208164de3f",
+            "fee": "00",
+            "confirmation_block_number": 1410547,
+            "batch_header_hash": "ea97a5b4e8c13235e5dbc1f5a660a9cce4fec8649928db804bca7e3aaf9a262d"
+        },
+        "inclusion_proof": "86fb4c2d2e1b362620ac2051e6088a675745eae2de4f3efd0c8f2b87f3aab220b8cac5937d5ab2fb2d71727daac14d4aa1d95e6386a17b852949d3bcca9397d739ca9dc137bade6adff8cc47aed7bb15d55d88f82444994b5624f2434185a47eb8bab8fbd393fbb9f169a07d9255753bccecc04b33ebce6cc1eb44a8a943c2849f0fd28126442179bc6eafc902512a91d17ad4870c056df2c25ad44ae2b99f201ac5857b2d0b68a750a6a95cd2f81b982c028eb71f74f26b8b072897434a90a402d3a9698802cb5015b83bbca7f4e85421cccba8023fbdb0e62400fc98dd657b45518e69e51f54a36af3fba2c620db5bbbb6b021078c7eabfe275c419d966712fa39812f9e627e2c16fb3e5c5272979e885185081e4ef237846db9b83ac731f2e6b3e4f222385d0d4eca022b1d69cc6e207119de4fc0cf53ba9ca91a4901697aa7766b0cc76fcb3340a6eb55681fdc087f3f8206599ff7a4b023c66aa1225589",
+        "quorum_indexes": "0001"
+    }
+}
