@@ -1,6 +1,5 @@
 import os
 import json
-import base64
 from web3 import Web3
 
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '0x00')
