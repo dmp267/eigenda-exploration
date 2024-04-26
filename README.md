@@ -5,7 +5,7 @@
 
 ![market_diagram](holesky/public/current_model.png)
 
-The voluntary carbon market relies on the collaboration of numerous stakeholders. Agriforestry projects, in particular, demand coordination among developers, standards bodies, validators, verifiers, and ultimately, carbon credit buyers. Currently, agriforestry projects seeking accreditation often turn to standards bodies like the [Verified Carbon Standard](https://verra.org/programs/verified-carbon-standard/) (VCS) by the nonprofit organization Verra.
+The voluntary carbon market relies on the collaboration of numerous stakeholders. Agroforestry projects, in particular, demand coordination among developers, standards bodies, validators, verifiers, and ultimately, carbon credit buyers. Currently, agroforestry projects seeking accreditation often turn to standards bodies like the [Verified Carbon Standard](https://verra.org/programs/verified-carbon-standard/) (VCS) by the nonprofit organization Verra.
 
 To achieve certification with a standards body, project developers must adhere to accepted [methodologies](https://verra.org/methodologies-main/#vcs-program-methodologies) in carbon accounting, such as Verra's VM0048. However, this process can prove frustrating for developers, as the determination of credit issuance often lacks transparency. The carbon credits certified by a standards body do not meet the expectations of the project developers for reasons unspecified by the body. Consequently, the credit issuance process appears opaque to market participants, rather than being transparent or formulaic.
 
