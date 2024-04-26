@@ -1,8 +1,17 @@
 <!-- # EigenDA Exploration -->
-# Carbon Credit Data Availability
-This project aims to improve the process for assuring the quality of carbon data used in the issuance of Verra [Verified Carbon Standard](https://verra.org/programs/verified-carbon-standard/) (VCS) credits (the leading standard for carbon credits) by providing a simple service for backing the original data sources with the [EigenDA](https://docs.eigenlayer.xyz/eigenda/overview) Data Availability network. 
+# Data Availability Service for Emissions Reductions and Avoided Deforestation Monitoring	
 
-Verra's VCS credits are determined transparently using high quality publicly available data (e.g. [AGB](), [deforestation]()) and according to their approved [methodologies](https://verra.org/methodologies-main/#vcs-program-methodologies). Records of credits and associated projects are maintained in the [Verra Registry](https://registry.verra.org/app/search/VCS). Using EigenDA for data availability allows the storage and persistence of the carbon credit process input data to benefit from the trust implications of Ethereum staking. These carbon datasets are updated quarterly, after which the new data can be pulled from IPFS and dispersed to EigenDA and the proofs updated on chain. This is designed to provide better guarantees to downstream carbon credit product users that the data used to determine the value of their products is available for audit.
+## Background
+
+The voluntary carbon market relies on the collaboration of various stakeholders. Agriforestry projects, in particular, demand coordination among developers, standards bodies, validators, verifiers, and ultimately, carbon credit buyers. Currently, agriforestry projects seeking accreditation often turn to standards bodies like the [Verified Carbon Standard](https://verra.org/programs/verified-carbon-standard/) (VCS) by the nonprofit organization Verra.
+
+To achieve certification with a standards body, project developers must adhere to accepted [methodologies](https://verra.org/methodologies-main/#vcs-program-methodologies) in carbon accounting, such as Verra's VM0048. However, this process can prove frustrating for developers, as the determination of credit issuance often lacks transparency. Consequently, the credit issuance process appears opaque to market participants, rather than being transparent or formulaic.
+
+This project aims to enhance the existing carbon credit issuance model by introducing a data availability layer that offers clear, objective metrics monitored by CYCLOPS. These metrics can then be integrated into accounting methodologies to monitor emissions reductions and sequestration. The project utilizes measures such as Above Ground Biomass (AGB) and Forest Area % metrics to illustrate its value. By leveraging CYCLOPS-produced AGB values, developers can easily calculate the total sequestered carbon in any designated forest region using a straightforward formula. This empowers developers with the tools necessary to directly monitor the impact of their project interventions.
+
+## Use Case Description
+
+Here we've provided a simple application dispersing CYCLOPS data to EigenDA. Using EigenDA for data availability allows the storage and persistence of CYCLOPS-produced data to benefit from the trust implications of Ethereum staking. These forestry datasets are updated quarterly, after which the new data can be pulled from IPFS and dispersed to EigenDA and the proofs updated on chain. This is designed to provide better guarantees to downstream carbon credit product users that the data used to determine the value of their products is available for audit.
 
 In this initial phase we are using the Holesky Ethereum testnet. We provide code for deploying verifier smart contracts,
 downloading data from IPFS, dispersing data to EigenDA's network, storing the proof on chain (uncompressed for now), verifying the proof on chain, and retrieving the data from EigenDA. The README in the Holesky directory includes the instructions to run each part of the service.
