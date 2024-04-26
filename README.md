@@ -20,5 +20,5 @@ Here we've provided a simple application dispersing CYCLOPS data to EigenDA. Usi
 In this initial phase we are using the Holesky Ethereum testnet. We provide code for deploying verifier smart contracts,
 downloading data from IPFS, dispersing data to EigenDA's network, storing the proof on chain (uncompressed for now), verifying the proof on chain, and retrieving the data from EigenDA. The README in the Holesky directory includes the instructions to run each part of the service.
 
-![diagram](holesky/public/eigenda-explore-update.jpg)
+![diagram](holesky/public/eigenda-explore-final.jpg)
 
