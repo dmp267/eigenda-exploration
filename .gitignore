@@ -9,3 +9,4 @@ temp
 .env
 broadcast/
 zarr_utils/
+operator/
