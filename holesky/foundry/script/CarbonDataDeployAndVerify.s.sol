@@ -3,20 +3,20 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import "../src/BlobVerifier.sol";
+import "../src/CarbonDataVerifier.sol";
 
 
-contract BlobDeployAndVerify is Script {
-
-    string constant CID = "QmSoASxb8aNVGk3pNWpZvXEZTQKxjGeu9bvpYHuo5bP1VJ";
-
+contract CarbonDataDeployAndVerify is Script {
     function run() external {   
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address owner = vm.envAddress("WALLET_ADDRESS");
         vm.startBroadcast(deployerPrivateKey);
 
-        BlobVerifier blobVerifier = new BlobVerifier(owner);
+        CarbonDataVerifier carbonDataVerifier = new CarbonDataVerifier(owner);
 
+        string memory datasetName = "agb-quarterly";
+        // PLACEHOLDER
+        string memory lastUpdatedHeadCID = "";
         uint8[] memory quorumNumbers = new uint8[](2);
         quorumNumbers[0] = 0;
         quorumNumbers[1] = 1;
@@ -60,9 +60,17 @@ contract BlobDeployAndVerify is Script {
             quorumIndices: hex"0001"
         });
 
-        blobVerifier.setStorageDetail(blobHeader, blobVerificationProof, CID);
-        blobVerifier.verifyAttestation(CID);
+        carbonDataVerifier.updateDataset(
+            datasetName, 
+            lastUpdatedHeadCID, 
+            blobHeader, 
+            blobVerificationProof
+        );
+        carbonDataVerifier.verifyDataset(datasetName);
+        carbonDataVerifier.getDatasetStorageDetails(datasetName);
+        carbonDataVerifier.getDatasetStorageDetails(datasetName);
 
         vm.stopBroadcast();
     }
+
 }

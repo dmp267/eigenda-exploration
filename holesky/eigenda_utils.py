@@ -3,30 +3,16 @@ import time
 import subprocess
 import grpc
 import json
-import ipfshttpclient, multiaddr
 
 from protobufs.disperser.disperser_pb2 import DisperseBlobRequest, BlobStatusRequest, RetrieveBlobRequest
 from protobufs.disperser.disperser_pb2_grpc import DisperserStub
 
 
 BYTES_PER_SYMBOL = 32
-HOST = "0.0.0.0"
-PORT = 5001
 DISPERSER = "disperser-holesky.eigenda.xyz:443"
 
 channel = grpc.secure_channel(DISPERSER, grpc.ssl_channel_credentials())
 stub = DisperserStub(channel)
-daemon = multiaddr.Multiaddr(f'/dns4/{HOST}/tcp/{PORT}/http')
-client = ipfshttpclient.connect(daemon, timeout=None, session=True)
-
-
-def retrieve_from_ipfs(cid: str):
-    try:
-        data = client.cat(cid)
-        return data
-    except Exception as e:
-        print(f'error pulling ipfs cid {cid}: {e}')
-        raise e
 
 
 # helper functions for guaranteeing the validity of the data to be dispersed to EigenDA
@@ -160,7 +146,7 @@ def transform_response(info):
     return proof_details
 
 
-def disperse_to_eigenda(cid: str, data: bytes):
+def disperse_to_eigenda(id: str, data: bytes):
     encoded_data = encode_for_dispersal(data)   
     disperse_request = DisperseBlobRequest(data=encoded_data)
 
@@ -177,7 +163,7 @@ def disperse_to_eigenda(cid: str, data: bytes):
             processing = False
             print(status_response)
             result = transform_response(status_response.info)
-            json.dump(result, open(f'attestations/{cid}.json', 'w'))
+            json.dump(result, open(f'attestations/{id}.json', 'w'))
         else:
             print('sleeping')
             time.sleep(60)

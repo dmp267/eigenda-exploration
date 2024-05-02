@@ -7,6 +7,93 @@ import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract BlobVerifier is Ownable {
 
+    struct ModifiedBlobHeader {
+        BN254.G1Point commitment;
+        uint32 dataLength;
+        bytes32 batchHeaderHash;
+        uint8[] quorumNumbers;
+        uint8[] adversaryThresholdPercentages;
+        uint8[] confirmationThresholdPercentages; 
+        uint32[] chunkLengths;
+    }
+    
+    // HOLESKY
+    address constant serviceManagerAddress = 0xD4A7E1Bd8015057293f0D0A557088c286942e84b;
+
+    struct StorageDetail {
+        ModifiedBlobHeader blobHeader;
+        EigenDARollupUtils.BlobVerificationProof blobVerificationProof;
+    }
+
+    StorageDetail[] internal storageDetails;
+    mapping (string => uint) internal storageDetailsIndex; // always stores index + 1 to differentiate from default value 0
+
+
+    constructor(address owner) Ownable(owner) {}
+
+    function readStorageDetail(string calldata id) 
+        public 
+        view 
+        returns (StorageDetail memory) 
+    {
+        uint index = storageDetailsIndex[id];
+        require(index > 0, "BlobVerifier: invalid id");
+        return storageDetails[index - 1];
+    }
+
+
+    function setStorageDetail(
+        ModifiedBlobHeader calldata _blobHeader,
+        EigenDARollupUtils.BlobVerificationProof calldata _blobVerificationProof,
+        string calldata id
+    ) public onlyOwner {
+        uint index = storageDetailsIndex[id];
+        if (index == 0) {
+            index = storageDetails.length + 1;
+            storageDetailsIndex[id] = index;
+            storageDetails.push(StorageDetail({
+                blobHeader: _blobHeader,
+                blobVerificationProof: _blobVerificationProof
+            }));
+        } 
+        storageDetails[index - 1].blobHeader = _blobHeader;
+        storageDetails[index - 1].blobVerificationProof = _blobVerificationProof;
+    }
+        
+
+    function verifyAttestation(
+        string memory id
+    ) 
+        public 
+        view
+    {
+        uint index = storageDetailsIndex[id];
+        require(index > 0, "BlobVerifier: invalid id");
+        StorageDetail memory _storageDetails = storageDetails[index - 1];
+        IEigenDAServiceManager _eigenDAServiceManager = IEigenDAServiceManager(serviceManagerAddress);
+
+        IEigenDAServiceManager.QuorumBlobParam[] memory _quorumBlobParams = new IEigenDAServiceManager.QuorumBlobParam[](_storageDetails.blobHeader.quorumNumbers.length);
+
+        for (uint i = 0; i < _storageDetails.blobHeader.quorumNumbers.length; i++) {
+            _quorumBlobParams[i] = IEigenDAServiceManager.QuorumBlobParam({
+                quorumNumber: _storageDetails.blobHeader.quorumNumbers[i],
+                adversaryThresholdPercentage: _storageDetails.blobHeader.adversaryThresholdPercentages[i],
+                confirmationThresholdPercentage: _storageDetails.blobHeader.confirmationThresholdPercentages[i],
+                chunkLength: _storageDetails.blobHeader.chunkLengths[i]
+            });
+        }
+
+        IEigenDAServiceManager.BlobHeader memory _blobHeader = IEigenDAServiceManager.BlobHeader({
+            commitment: _storageDetails.blobHeader.commitment,
+            dataLength: _storageDetails.blobHeader.dataLength,
+            quorumBlobParams: _quorumBlobParams
+        });
+
+        EigenDARollupUtils.verifyBlob(_blobHeader, _eigenDAServiceManager, _storageDetails.blobVerificationProof);
+    }
+}
+
+
     // struct G1Point {
     //     uint256 X;
     //     uint256 Y;
@@ -46,190 +133,3 @@ contract BlobVerifier is Ownable {
     //     bytes inclusionProof;
     //     bytes quorumIndices;
     // }
-
-
-    struct ModifiedBlobHeader {
-        BN254.G1Point commitment;
-        uint32 dataLength;
-        bytes32 batchHeaderHash;
-        uint8[] quorumNumbers;
-        uint8[] adversaryThresholdPercentages;
-        uint8[] confirmationThresholdPercentages; 
-        uint32[] chunkLengths;
-    }
-    
-    // holesky
-    address serviceManagerAddress = 0xD4A7E1Bd8015057293f0D0A557088c286942e84b;
-
-    struct StorageDetail {
-        ModifiedBlobHeader blobHeader;
-        EigenDARollupUtils.BlobVerificationProof blobVerificationProof;
-    }
-
-    StorageDetail[] public storageDetails;
-    mapping (string => uint) public storageDetailsIndex; // index + 1
-
-
-    constructor(address owner) Ownable(owner) {}
-
-
-    function readStorageDetail(string calldata cid) 
-        external 
-        view 
-        returns (StorageDetail memory) 
-    {
-        uint index = storageDetailsIndex[cid];
-        require(index > 0, "BlobVerifier: invalid cid");
-        return storageDetails[index - 1];
-    }
-
-
-    function initializeStorageDetail(string memory cid) private {
-        if (storageDetailsIndex[cid] == 0) {
-            uint index = storageDetails.length;
-            storageDetailsIndex[cid] = index + 1;
-
-            storageDetails.push(StorageDetail({
-                blobHeader: ModifiedBlobHeader({
-                    commitment: BN254.G1Point(0, 0),
-                    dataLength: 0,
-                    batchHeaderHash: bytes32(0),
-                    quorumNumbers: new uint8[](0),
-                    adversaryThresholdPercentages: new uint8[](0),
-                    confirmationThresholdPercentages: new uint8[](0),
-                    chunkLengths: new uint32[](0)
-                }),
-                blobVerificationProof: EigenDARollupUtils.BlobVerificationProof({
-                    batchId: 0,
-                    blobIndex: 0,
-                    batchMetadata: IEigenDAServiceManager.BatchMetadata({
-                        batchHeader: IEigenDAServiceManager.BatchHeader({
-                            blobHeadersRoot: bytes32(0),
-                            quorumNumbers: new bytes(0),
-                            signedStakeForQuorums: new bytes(0),
-                            referenceBlockNumber: 0
-                        }),
-                        signatoryRecordHash: bytes32(0),
-                        confirmationBlockNumber: 0
-                    }),
-                    inclusionProof: new bytes(0),
-                    quorumIndices: new bytes(0)
-                })
-            }));
-        } 
-    }
-
-
-    function setBlobHeader(
-        uint32 dataLength,
-        uint256 x,
-        uint256 y,
-        bytes32 batchHeaderHash,
-        uint8[] calldata quorumNumbers,
-        uint8[] calldata adversaryThresholdPercentages,
-        uint8[] calldata confirmationThresholdPercentages,
-        uint32[] memory chunkLengths, // calldata limit
-        string memory cid // calldata limit
-    ) external onlyOwner {
-        uint index = storageDetailsIndex[cid];
-        if (index == 0) {
-            initializeStorageDetail(cid);
-        }
-
-        index = storageDetailsIndex[cid] - 1;
-        storageDetails[index].blobHeader = ModifiedBlobHeader({
-            commitment: BN254.G1Point(x, y),
-            dataLength: dataLength,
-            batchHeaderHash: batchHeaderHash,
-            quorumNumbers: quorumNumbers,
-            adversaryThresholdPercentages: adversaryThresholdPercentages,
-            confirmationThresholdPercentages: confirmationThresholdPercentages,
-            chunkLengths: chunkLengths
-        });
-    }
-
-
-    function setBatchMetadata(
-        bytes32 signatoryRecordHash,
-        uint32 confirmationBlockNumber,
-        bytes32 blobHeadersRoot,
-        uint32 referenceBlockNumber,
-        bytes calldata quorumNumbers,
-        bytes calldata signedStakeForQuorums,
-        string calldata cid
-    ) external onlyOwner {
-        uint index = storageDetailsIndex[cid];
-        if (index == 0) {
-            initializeStorageDetail(cid);
-        } 
-
-        index = storageDetailsIndex[cid] - 1;
-        storageDetails[index].blobVerificationProof.batchMetadata = IEigenDAServiceManager.BatchMetadata({
-            batchHeader: IEigenDAServiceManager.BatchHeader({
-                blobHeadersRoot: blobHeadersRoot,
-                quorumNumbers: quorumNumbers,
-                signedStakeForQuorums: signedStakeForQuorums,
-                referenceBlockNumber: referenceBlockNumber
-            }),
-            signatoryRecordHash: signatoryRecordHash,
-            confirmationBlockNumber: confirmationBlockNumber
-        });
-    }
-
-
-    function setBlobVerificationProof(
-        uint32 batchId,
-        uint32 blobIndex,
-        bytes calldata inclusionProof,
-        bytes calldata quorumIndices,
-        string calldata cid
-    ) external onlyOwner {
-        uint index = storageDetailsIndex[cid];
-        if (index == 0) {
-            initializeStorageDetail(cid);
-        } 
-
-        index = storageDetailsIndex[cid] - 1;
-        storageDetails[index].blobVerificationProof = EigenDARollupUtils.BlobVerificationProof({
-            batchId: batchId,
-            blobIndex: blobIndex,
-            batchMetadata: storageDetails[index].blobVerificationProof.batchMetadata,
-            inclusionProof: inclusionProof,
-            quorumIndices: quorumIndices
-        });
-    }
-        
-
-    function verifyAttestation(
-        string memory cid
-    ) 
-        public 
-        view
-    {
-        uint index = storageDetailsIndex[cid];
-        require(index > 0, "BlobVerifier: invalid cid");
-        StorageDetail memory _storageDetails = storageDetails[index - 1];
-        IEigenDAServiceManager _eigenDAServiceManager = IEigenDAServiceManager(serviceManagerAddress);
-
-        IEigenDAServiceManager.QuorumBlobParam[] memory _quorumBlobParams = new IEigenDAServiceManager.QuorumBlobParam[](_storageDetails.blobHeader.quorumNumbers.length);
-
-        for (uint i = 0; i < _storageDetails.blobHeader.quorumNumbers.length; i++) {
-            _quorumBlobParams[i] = IEigenDAServiceManager.QuorumBlobParam({
-                quorumNumber: _storageDetails.blobHeader.quorumNumbers[i],
-                adversaryThresholdPercentage: _storageDetails.blobHeader.adversaryThresholdPercentages[i],
-                confirmationThresholdPercentage: _storageDetails.blobHeader.confirmationThresholdPercentages[i],
-                chunkLength: _storageDetails.blobHeader.chunkLengths[i]
-            });
-        }
-
-        IEigenDAServiceManager.BlobHeader memory _blobHeader = IEigenDAServiceManager.BlobHeader({
-            commitment: _storageDetails.blobHeader.commitment,
-            dataLength: _storageDetails.blobHeader.dataLength,
-            quorumBlobParams: _quorumBlobParams
-        });
-
-        EigenDARollupUtils.verifyBlob(_blobHeader, _eigenDAServiceManager, _storageDetails.blobVerificationProof);
-    }
-}
-
-

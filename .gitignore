@@ -8,3 +8,4 @@ cache
 temp
 .env
 broadcast/
+zarr_utils/
