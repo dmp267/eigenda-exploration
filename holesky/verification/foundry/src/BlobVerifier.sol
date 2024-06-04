@@ -21,6 +21,7 @@ contract BlobVerifier is Ownable {
     address constant serviceManagerAddress = 0xD4A7E1Bd8015057293f0D0A557088c286942e84b;
 
     struct StorageDetail {
+        uint256 lastUpdatedTimestamp;
         ModifiedBlobHeader blobHeader;
         EigenDARollupUtils.BlobVerificationProof blobVerificationProof;
     }
@@ -52,6 +53,7 @@ contract BlobVerifier is Ownable {
             index = storageDetails.length + 1;
             storageDetailsIndex[id] = index;
             storageDetails.push(StorageDetail({
+                lastUpdatedTimestamp: block.timestamp,
                 blobHeader: _blobHeader,
                 blobVerificationProof: _blobVerificationProof
             }));

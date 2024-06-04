@@ -7,7 +7,7 @@ import json
 from protobufs.disperser.disperser_pb2 import DisperseBlobRequest, BlobStatusRequest, RetrieveBlobRequest
 from protobufs.disperser.disperser_pb2_grpc import DisperserStub
 
-
+# CONSTANTS
 BYTES_PER_SYMBOL = 32
 DISPERSER = "disperser-holesky.eigenda.xyz:443"
 
@@ -15,12 +15,17 @@ channel = grpc.secure_channel(DISPERSER, grpc.ssl_channel_credentials())
 stub = DisperserStub(channel)
 
 
-# helper functions for guaranteeing the validity of the data to be dispersed to EigenDA
-# converted from go example at https://docs.eigenlayer.xyz/eigenda/rollup-guides/blob-encoding
+# converted from go examples at https://docs.eigenlayer.xyz/eigenda/rollup-guides/blob-encoding
 def convert_by_padding_empty_byte(data):
     """
     Convert data by padding an empty byte at the front of every 31 bytes.
     This ensures every 32 bytes are within the valid range of a field element for bn254 curve.
+
+    Parameters:
+        data (bytes): The data to convert.
+
+    Returns:
+        bytes: The converted data.
     """
     parse_size = BYTES_PER_SYMBOL - 1
     data_size = len(data)
@@ -46,6 +51,12 @@ def convert_by_padding_empty_byte(data):
 def remove_empty_byte_from_padded_bytes(data):
     """
     Remove the first byte from every 32 bytes, reversing the change made by convert_by_padding_empty_byte.
+    
+    Parameters:
+        data (bytes): The data to convert.
+
+    Returns:
+        bytes: The converted data.
     """
     parse_size = BYTES_PER_SYMBOL
     data_size = len(data)
@@ -68,6 +79,12 @@ def remove_empty_byte_from_padded_bytes(data):
 
 
 def find_kzgpad():
+    """
+    Find the path to the kzgpad binary.
+
+    Returns:
+        str: The path to the kzgpad binary.
+    """
     repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     parent = os.path.dirname(repo_root)
     grandparent = os.path.dirname(parent)
@@ -79,6 +96,16 @@ def find_kzgpad():
 
 
 def encode_for_dispersal(data: bytes):
+    """
+    Encode data for dispersal to EigenDA.
+    See here for details: https://docs.eigenlayer.xyz/eigenda/rollup-guides/blob-encoding
+    
+    Parameters:
+        data (bytes): The data to encode.
+
+    Returns:
+        bytes: The encoded data.
+    """
     path = find_kzgpad()
     result = subprocess.run([path, "-e", data], capture_output=True, text=True).stdout.strip()
     result_bytes = bytes(result, "utf-8")
@@ -87,6 +114,17 @@ def encode_for_dispersal(data: bytes):
 
 
 def decode_retrieval(data: bytes):
+    """
+    Decode data retrieved from EigenDA.
+    See here for details: https://docs.eigenlayer.xyz/eigenda/rollup-guides/blob-encoding.
+    This reverts the encoding done by encode_for_dispersal.
+
+    Parameters:
+        data (bytes): The data to decode.
+
+    Returns:
+        str: The decoded data.
+    """
     reconverted_data = remove_empty_byte_from_padded_bytes(data)
     reconverted_str = reconverted_data.decode("utf-8")
     path = find_kzgpad()
@@ -95,6 +133,15 @@ def decode_retrieval(data: bytes):
     
 
 def transform_response(info):
+    """
+    Transform the response from EigenDA into a more readable format.
+
+    Parameters:
+        info (protobufs.disperser.disperser_pb2.BlobInfo): The response from EigenDA.
+
+    Returns:
+        dict: The transformed response.
+    """
     if len(info.blob_header.blob_quorum_params) > 1:
         blob_quorum_params = []
         for params in info.blob_header.blob_quorum_params:
@@ -147,6 +194,16 @@ def transform_response(info):
 
 
 def disperse_to_eigenda(id: str, data: bytes):
+    """
+    Disperse data to EigenDA.
+
+    Parameters:
+        id (str): The id of the data.
+        data (bytes): The data to disperse.
+    
+    Returns:
+        dict: The transformed response from EigenDA.
+    """
     encoded_data = encode_for_dispersal(data)   
     disperse_request = DisperseBlobRequest(data=encoded_data)
 
@@ -172,6 +229,16 @@ def disperse_to_eigenda(id: str, data: bytes):
 
 
 def retrieve_from_eigenda(batch_header_hash: str, blob_index: int):
+    """
+    Retrieve data from EigenDA.
+
+    Parameters:
+        batch_header_hash (str): The batch header hash.
+        blob_index (int): The blob index.
+
+    Returns:
+        str: The retrieved data.
+    """
     retrieve_request = RetrieveBlobRequest(batch_header_hash=batch_header_hash, blob_index=blob_index)
     retrieve_response = stub.RetrieveBlob(retrieve_request)
     print(retrieve_response)

@@ -67,8 +67,7 @@ contract CarbonDataDeployAndVerify is Script {
             blobVerificationProof
         );
         carbonDataVerifier.verifyDataset(datasetName);
-        carbonDataVerifier.getDatasetStorageDetails(datasetName);
-        carbonDataVerifier.getDatasetStorageDetails(datasetName);
+        carbonDataVerifier.readDatasetStorageDetails(datasetName);
 
         vm.stopBroadcast();
     }

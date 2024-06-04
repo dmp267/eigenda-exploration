@@ -3,35 +3,54 @@ import json
 import datetime
 from web3 import Web3
 
+# CONSTANTS
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '0x00')
 WALLET_ADDRESS = os.environ.get('WALLET_ADDRESS', '0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1')
-# need to update this
-CONTRACT_ADDRESS = os.environ.get('CONTRACT_ADDRESS', '0xa510C89DD5DD60CDC9cB52E2524CBD28c22FC663')
+CONTRACT_ADDRESS = os.environ.get('CONTRACT_ADDRESS', '0xa510C89DD5DD60CDC9cB52E2524CBD28c22FC663') # TODO: update with new (temporary) contract address
 RPC_URL = os.environ.get('RPC_URL', "https://ethereum-holesky-rpc.publicnode.com")
-# ABI = json.load(open('foundry/out/BlobVerifier.sol/BlobVerifier.json'))['abi']
-ABI = json.load(open('foundry/out/CarbonDataVerifier.sol/CarbonDataVerifier.json'))['abi']
+ABI = json.load(open('foundry/out/ProjectStorageVerifier.sol/ProjectStorageVerifier.json'))['abi']
 
 web3 = Web3(Web3.HTTPProvider(RPC_URL))
 chainId = web3.eth.chain_id
 print(f'Connected to {RPC_URL} for chain {chainId}: {web3.is_connected()}')
 
 
-def read_store_details(dataset_name: str):
+def read_store_details(project_name: str):
+    """
+    Read the storage details of a carbon monitoring/management project from the smart contract.
+
+    Parameters:
+        project_name (str): The name of the project.
+
+    Returns:
+        dict: The storage details of the project.
+    """
     contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=ABI)
-    full_detail = contract.functions.readDatasetStorageDetails(dataset_name).call()
-    dataset_store = full_detail[0]
+    full_detail = contract.functions.readProjectStorageProof(project_name).call()
+    project_store = full_detail[0]
     storage_detail = full_detail[1]
     result = {
-        "last_updated_timestamp": datetime.fromtimestamp(int(dataset_store[1])),
-        "last_updated_head_cid": datetime.fromtimestamp(int(dataset_store[2])),
-        "blob_index": int(storage_detail[1][1]), 
-        "batch_header_hash": storage_detail[0][2]
+        "last_updated_timestamp": datetime.fromtimestamp(int(storage_detail[0])),
+        "last_updated_head_cid": datetime.fromtimestamp(int(project_store[0])),
+        "blob_index": int(storage_detail[2][1]), 
+        "batch_header_hash": storage_detail[1][2]
     }
     print(result)
     return result
 
 
-def store_on_chain(dataset_name: str, cid: str, result: str):
+def store_on_chain(project_name: str, cid: str, result: str):
+    """
+    Store the storage details of a carbon monitoring/management project on the smart contract.
+
+    Parameters:
+        project_name (str): The name of the project.
+        cid (str): The IPFS CID of the head of the data associated with the project.
+        result (dict): The storage details of the project.
+
+    Returns:
+        dict: The receipt of the transaction.
+    """
     contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=ABI)
 
     params_list = result['blob_header']['blob_quorum_params']
@@ -71,8 +90,8 @@ def store_on_chain(dataset_name: str, cid: str, result: str):
                                     bytes.fromhex(result['blob_verification_proof']['quorum_indexes'])]
 
     nonce = web3.eth.get_transaction_count(WALLET_ADDRESS)
-    update_dataset = contract.functions.updateDataset(
-        dataset_name,
+    update_dataset = contract.functions.uploadProjectStorageProof(
+        project_name,
         cid,
         blob_header_args, 
         blob_verification_proof_args).build_transaction({
@@ -86,8 +105,17 @@ def store_on_chain(dataset_name: str, cid: str, result: str):
     return receipt
 
 
-def verify_on_chain(dataset_name: str):
+def verify_on_chain(project_name: str):
+    """
+    Verify the storage details of a carbon monitoring/management project on the smart contract.
+
+    Parameters:
+        project_name (str): The name of the project.
+
+    Returns:
+        bool: The verification status of the project.
+    """
     contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=ABI)
-    verification = contract.functions.verifu(dataset_name).call()
-    print(f'Verification for dataset {dataset_name}: {verification}')
+    verification = contract.functions.verifyDataset(project_name).call()
+    print(f'Verification for dataset {project_name}: {verification}')
     return verification

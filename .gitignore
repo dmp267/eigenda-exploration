@@ -1,12 +1,11 @@
 operator.yaml
 .DS_Store
 __pycache__/
-Counter.*
 lib
 out
 cache
 temp
 .env
 broadcast/
-zarr_utils/
+dclimate_zarr_client/
 operator/
