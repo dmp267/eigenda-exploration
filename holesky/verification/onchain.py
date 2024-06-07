@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import datetime
 from web3 import Web3
@@ -6,9 +7,9 @@ from web3 import Web3
 # CONSTANTS
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '0x00')
 WALLET_ADDRESS = os.environ.get('WALLET_ADDRESS', '0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1')
-CONTRACT_ADDRESS = os.environ.get('CONTRACT_ADDRESS', '0xa510C89DD5DD60CDC9cB52E2524CBD28c22FC663') # TODO: update with new (temporary) contract address
+CONTRACT_ADDRESS = os.environ.get('CONTRACT_ADDRESS', '0xb656f8055dC859b0e008D12B649Dc5574f463036')
 RPC_URL = os.environ.get('RPC_URL', "https://ethereum-holesky-rpc.publicnode.com")
-ABI = json.load(open('foundry/out/ProjectStorageVerifier.sol/ProjectStorageVerifier.json'))['abi']
+ABI = json.load(open('verification/foundry/out/ProjectStorageVerifier.sol/ProjectStorageVerifier.json'))['abi']
 
 web3 = Web3(Web3.HTTPProvider(RPC_URL))
 chainId = web3.eth.chain_id
@@ -90,7 +91,7 @@ def store_on_chain(project_name: str, cid: str, result: str):
                                     bytes.fromhex(result['blob_verification_proof']['quorum_indexes'])]
 
     nonce = web3.eth.get_transaction_count(WALLET_ADDRESS)
-    update_dataset = contract.functions.uploadProjectStorageProof(
+    upload_proof = contract.functions.uploadProjectStorageProof(
         project_name,
         cid,
         blob_header_args, 
@@ -99,7 +100,7 @@ def store_on_chain(project_name: str, cid: str, result: str):
             "from": WALLET_ADDRESS, 
             "nonce": nonce})
     
-    signed_txn = web3.eth.account.sign_transaction(update_dataset, private_key=PRIVATE_KEY)
+    signed_txn = web3.eth.account.sign_transaction(upload_proof, private_key=PRIVATE_KEY)
     send_txn = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
     receipt = web3.eth.wait_for_transaction_receipt(send_txn)
     return receipt

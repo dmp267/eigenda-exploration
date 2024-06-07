@@ -46,7 +46,7 @@ def parse_kwargs(data):
 
     polygon_kwargs = { "polygons_mask": gpd.array.from_shapely(polygons_mask) }
     spatial_agg_kwargs = { "agg_method": "sum" }
-    temporal_agg_kwargs = { "time_period": "all", "agg_method": "sum", "time_unit": 1 }
+    temporal_agg_kwargs = { "time_period": "all", "agg_method": "sum" }
 
     return {
         "polygon_kwargs": polygon_kwargs,

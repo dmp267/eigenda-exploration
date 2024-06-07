@@ -1,8 +1,11 @@
 import os
+import sys
 import time
 import subprocess
 import grpc
 import json
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
 from protobufs.disperser.disperser_pb2 import DisperseBlobRequest, BlobStatusRequest, RetrieveBlobRequest
 from protobufs.disperser.disperser_pb2_grpc import DisperserStub
@@ -85,7 +88,7 @@ def find_kzgpad():
     Returns:
         str: The path to the kzgpad binary.
     """
-    repo_root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
     parent = os.path.dirname(repo_root)
     grandparent = os.path.dirname(parent)
     if 'eigenda' in os.listdir(parent):
@@ -193,7 +196,7 @@ def transform_response(info):
     return proof_details
 
 
-def disperse_to_eigenda(id: str, data: bytes):
+def disperse_to_eigenda(id: str, data: bytes, checkpoint: str = None):
     """
     Disperse data to EigenDA.
 
@@ -204,26 +207,29 @@ def disperse_to_eigenda(id: str, data: bytes):
     Returns:
         dict: The transformed response from EigenDA.
     """
-    encoded_data = encode_for_dispersal(data)   
-    disperse_request = DisperseBlobRequest(data=encoded_data)
+    if checkpoint is None:
+        encoded_data = encode_for_dispersal(data)   
+        disperse_request = DisperseBlobRequest(data=encoded_data)
 
-    disperse_response = stub.DisperseBlob(disperse_request)
-    print(disperse_response)
+        disperse_response = stub.DisperseBlob(disperse_request)
+        print(disperse_response)
 
-    processing = True
-    result = ''
-    while processing:
-        status_request = BlobStatusRequest(request_id=disperse_response.request_id)
-        status_response = stub.GetBlobStatus(status_request)
-        print(f'status_response: {"CONFIRMED" if status_response == 2 else "PROCESSING"}')
-        if status_response.status == 2: # CONFIRMED
-            processing = False
-            print(status_response)
-            result = transform_response(status_response.info)
-            json.dump(result, open(f'attestations/{id}.json', 'w'))
-        else:
-            print('sleeping')
-            time.sleep(60)
+        processing = True
+        result = ''
+        while processing:
+            status_request = BlobStatusRequest(request_id=disperse_response.request_id)
+            status_response = stub.GetBlobStatus(status_request)
+            print(f'status_response: {"CONFIRMED" if status_response == 2 else "PROCESSING"}')
+            if status_response.status == 2: # CONFIRMED
+                processing = False
+                print(status_response)
+                result = transform_response(status_response.info)
+                json.dump(result, open(f'storage/attestations/{id}.json', 'w'))
+            else:
+                print('sleeping')
+                time.sleep(60)
+    else:
+        result = json.load(open(checkpoint, 'r'))
 
     return result
 

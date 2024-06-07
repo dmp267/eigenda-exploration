@@ -33,7 +33,7 @@ contract ProjectStorageVerifier is BlobVerifier {
     ) external onlyOwner {
         uint lastUpdated = readStorageDetail(projectName).lastUpdatedTimestamp;
         if (lastUpdated != 0) {
-            require(block.timestamp - lastUpdated > 90 days, "ProjectVerifier: project already updated within 90 days");
+            require(block.timestamp - lastUpdated > 90 days, "ProjectStorageVerifier: project already updated within 90 days");
         } 
 
         setStorageDetail(
@@ -43,7 +43,6 @@ contract ProjectStorageVerifier is BlobVerifier {
         );
 
         projects[projectName] = ProjectStore({
-            initialized: true,
             lastUpdatedHeadCID: lastUpdatedHeadCID
         });
     }
@@ -53,7 +52,7 @@ contract ProjectStorageVerifier is BlobVerifier {
         external 
         view
     {
-        require(readStorageDetail(projectName).lastUpdatedTimestamp > 0, "ProjectVerifier: invalid project");
+        require(readStorageDetail(projectName).lastUpdatedTimestamp > 0, "ProjectStorageVerifier: invalid project");
         verifyAttestation(projects[projectName].lastUpdatedHeadCID);
     }
 

@@ -38,7 +38,7 @@ forge create --rpc-url $RPC_URL \
         --private-key $PRIVATE_KEY \
         --etherscan-api-key $ETHERSCAN_API_KEY \
         --verify \
-        src/CarbonDataVerifier.sol:CarbonDataVerifier \
+        src/ProjectStorageVerifier.sol:ProjectStorageVerifier \
         --libraries lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol:EigenDARollupUtils:$DEPLOYED_ADDRESS
 ```
 
