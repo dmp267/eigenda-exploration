@@ -8,6 +8,7 @@ contract ProjectStorageVerifier is BlobVerifier {
 
     // storage details for carbon monitoring projects
     struct ProjectStore {
+        bool exists;
         string lastUpdatedHeadCID;
         // coords?
     }
@@ -21,8 +22,7 @@ contract ProjectStorageVerifier is BlobVerifier {
     mapping(string => ProjectStore) public projects;
 
 
-    constructor(address owner) BlobVerifier(owner) {
-    }
+    constructor(address owner) BlobVerifier(owner) {}
 
 
     function uploadProjectStorageProof(
@@ -31,10 +31,9 @@ contract ProjectStorageVerifier is BlobVerifier {
         ModifiedBlobHeader calldata _blobHeader,
         EigenDARollupUtils.BlobVerificationProof calldata _blobVerificationProof
     ) external onlyOwner {
-        uint lastUpdated = readStorageDetail(projectName).lastUpdatedTimestamp;
-        if (lastUpdated != 0) {
-            require(block.timestamp - lastUpdated > 90 days, "ProjectStorageVerifier: project already updated within 90 days");
-        } 
+        if (projects[projectName].exists) {
+            require(block.timestamp - readStorageDetail(projectName).lastUpdatedTimestamp > 90 days, "ProjectStorageVerifier: project already updated within 90 days");
+        }
 
         setStorageDetail(
             _blobHeader, 
@@ -43,6 +42,7 @@ contract ProjectStorageVerifier is BlobVerifier {
         );
 
         projects[projectName] = ProjectStore({
+            exists: true,
             lastUpdatedHeadCID: lastUpdatedHeadCID
         });
     }
@@ -52,8 +52,8 @@ contract ProjectStorageVerifier is BlobVerifier {
         external 
         view
     {
-        require(readStorageDetail(projectName).lastUpdatedTimestamp > 0, "ProjectStorageVerifier: invalid project");
-        verifyAttestation(projects[projectName].lastUpdatedHeadCID);
+        require(projects[projectName].exists, "ProjectStorageVerifier: invalid project");
+        verifyAttestation(projectName);
     }
 
 

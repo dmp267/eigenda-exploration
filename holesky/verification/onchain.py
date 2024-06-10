@@ -1,13 +1,12 @@
 import os
-import sys
 import json
-import datetime
+from datetime import datetime
 from web3 import Web3
 
 # CONSTANTS
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '0x00')
 WALLET_ADDRESS = os.environ.get('WALLET_ADDRESS', '0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1')
-CONTRACT_ADDRESS = os.environ.get('CONTRACT_ADDRESS', '0xb656f8055dC859b0e008D12B649Dc5574f463036')
+CONTRACT_ADDRESS = os.environ.get('CONTRACT_ADDRESS', '0x434a156aA863c66FAd723a7e3fb68C317DF5f0b7')
 RPC_URL = os.environ.get('RPC_URL', "https://ethereum-holesky-rpc.publicnode.com")
 ABI = json.load(open('verification/foundry/out/ProjectStorageVerifier.sol/ProjectStorageVerifier.json'))['abi']
 
@@ -117,6 +116,6 @@ def verify_on_chain(project_name: str):
         bool: The verification status of the project.
     """
     contract = web3.eth.contract(address=CONTRACT_ADDRESS, abi=ABI)
-    verification = contract.functions.verifyDataset(project_name).call()
-    print(f'Verification for dataset {project_name}: {verification}')
+    verification = contract.functions.verifyProjectStorageProof(project_name).call()
+    print(f'Verification for {project_name} complete')
     return verification

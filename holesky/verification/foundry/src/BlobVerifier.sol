@@ -32,6 +32,7 @@ contract BlobVerifier is Ownable {
 
     constructor(address owner) Ownable(owner) {}
 
+
     function readStorageDetail(string calldata id) 
         public 
         view 
@@ -75,7 +76,6 @@ contract BlobVerifier is Ownable {
         IEigenDAServiceManager _eigenDAServiceManager = IEigenDAServiceManager(serviceManagerAddress);
 
         IEigenDAServiceManager.QuorumBlobParam[] memory _quorumBlobParams = new IEigenDAServiceManager.QuorumBlobParam[](_storageDetails.blobHeader.quorumNumbers.length);
-
         for (uint i = 0; i < _storageDetails.blobHeader.quorumNumbers.length; i++) {
             _quorumBlobParams[i] = IEigenDAServiceManager.QuorumBlobParam({
                 quorumNumber: _storageDetails.blobHeader.quorumNumbers[i],

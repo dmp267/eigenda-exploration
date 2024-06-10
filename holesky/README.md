@@ -55,7 +55,7 @@ forge create --rpc-url $RPC_URL \
     make build
     cd ../eigenda-exploration/holesky
 
-    python examples/carbon.py
+    python demo.py
 ```
 * To test the verifier smart contract, obtain a [Holesky RPC URL](https://chainlist.org/chain/17000) and run the following:
 ```
@@ -64,5 +64,5 @@ forge create --rpc-url $RPC_URL \
     forge build
     anvil --fork-url $RPC_URL
     # in another window
-    forge script script/CarbonDataDeployAndVerify.s.sol --rpc-url http://127.0.0.1:8545
+    forge script script/ProjectStorageDeployAndVerify.s.sol --rpc-url http://127.0.0.1:8545
 ```

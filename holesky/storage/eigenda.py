@@ -196,7 +196,7 @@ def transform_response(info):
     return proof_details
 
 
-def disperse_to_eigenda(id: str, data: bytes, checkpoint: str = None):
+def disperse_to_eigenda(id: str, data: bytes):
     """
     Disperse data to EigenDA.
 
@@ -207,30 +207,26 @@ def disperse_to_eigenda(id: str, data: bytes, checkpoint: str = None):
     Returns:
         dict: The transformed response from EigenDA.
     """
-    if checkpoint is None:
-        encoded_data = encode_for_dispersal(data)   
-        disperse_request = DisperseBlobRequest(data=encoded_data)
+    encoded_data = encode_for_dispersal(data)   
+    disperse_request = DisperseBlobRequest(data=encoded_data)
 
-        disperse_response = stub.DisperseBlob(disperse_request)
-        print(disperse_response)
+    disperse_response = stub.DisperseBlob(disperse_request)
+    print(disperse_response)
 
-        processing = True
-        result = ''
-        while processing:
-            status_request = BlobStatusRequest(request_id=disperse_response.request_id)
-            status_response = stub.GetBlobStatus(status_request)
-            print(f'status_response: {"CONFIRMED" if status_response == 2 else "PROCESSING"}')
-            if status_response.status == 2: # CONFIRMED
-                processing = False
-                print(status_response)
-                result = transform_response(status_response.info)
-                json.dump(result, open(f'storage/attestations/{id}.json', 'w'))
-            else:
-                print('sleeping')
-                time.sleep(60)
-    else:
-        result = json.load(open(checkpoint, 'r'))
-
+    processing = True
+    result = ''
+    while processing:
+        status_request = BlobStatusRequest(request_id=disperse_response.request_id)
+        status_response = stub.GetBlobStatus(status_request)
+        print(f'status_response: {"CONFIRMED" if status_response == 2 else "PROCESSING"}')
+        if status_response.status == 2: # CONFIRMED
+            processing = False
+            print(status_response)
+            result = transform_response(status_response.info)
+            json.dump(result, open(f'storage/attestations/{id}.json', 'w'))
+        else:
+            print('sleeping')
+            time.sleep(60)
     return result
 
 
@@ -247,7 +243,7 @@ def retrieve_from_eigenda(batch_header_hash: str, blob_index: int):
     """
     retrieve_request = RetrieveBlobRequest(batch_header_hash=batch_header_hash, blob_index=blob_index)
     retrieve_response = stub.RetrieveBlob(retrieve_request)
-    print(retrieve_response)
+    # print(retrieve_response)
 
     stored_data = bytes(retrieve_response.data)
     result = decode_retrieval(stored_data)

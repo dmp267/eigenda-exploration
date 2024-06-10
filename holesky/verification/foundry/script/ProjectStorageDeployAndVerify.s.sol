@@ -14,7 +14,7 @@ contract ProjectStorageDeployAndVerify is Script {
 
         ProjectStorageVerifier projectStorageVerifier = new ProjectStorageVerifier(owner);
 
-        // string memory datasetName = "agb-quarterly";
+        string memory projectName = "project-test";
         // PLACEHOLDER
         string memory lastUpdatedHeadCID = "";
         uint8[] memory quorumNumbers = new uint8[](2);
@@ -32,11 +32,11 @@ contract ProjectStorageDeployAndVerify is Script {
 
         BlobVerifier.ModifiedBlobHeader memory blobHeader = BlobVerifier.ModifiedBlobHeader({
             commitment: BN254.G1Point(
-                17709391318787797331642701840504388161158975750185246830022501631687012546893,
-                5511369121926248436136882980770562785844228494401429094386919117721689758478
+                18171297588696763929626849511322678416393695719385988237656895665615483177907,
+                4301955005949362388327180169304248503021139659975673245499737657633538138245
             ),
-            dataLength: 1,
-            batchHeaderHash: hex"829b163ab6bafa5474f6e6a99fcde9ee2e5978e9c75a0670700e92748a2a3f95",
+            dataLength: 13,
+            batchHeaderHash: hex"ca716ebb16aae9326da20a7affbaef32523b6c5f05ff23bfbcd9d50e5120f38f",
             quorumNumbers: quorumNumbers,
             adversaryThresholdPercentages: adversaryThresholdPercentages,
             confirmationThresholdPercentages: confirmationThresholdPercentages,
@@ -44,30 +44,30 @@ contract ProjectStorageDeployAndVerify is Script {
         });
 
         EigenDARollupUtils.BlobVerificationProof memory blobVerificationProof = EigenDARollupUtils.BlobVerificationProof({
-            batchId: 11550,
-            blobIndex: 805,
+            batchId: 18626,
+            blobIndex: 799,
             batchMetadata: IEigenDAServiceManager.BatchMetadata({
                 batchHeader: IEigenDAServiceManager.BatchHeader({
-                    blobHeadersRoot: hex"df69a32cd0589de5096ce85b627c40c390551a03bc3e1415213686422fa18bbf",
+                    blobHeadersRoot: hex"15903f29064a1b20b965b66f932067bf476782fab466d2bad580a0600f8881e3",
                     quorumNumbers: hex"0001",
-                    signedStakeForQuorums: hex"6362",
-                    referenceBlockNumber: 1398667
+                    signedStakeForQuorums: hex"5e5f",
+                    referenceBlockNumber: 1709546
                 }),
-                signatoryRecordHash: hex"dd5ceff68423495260173cc698a7cb12eead967f43239e58fec53af966863154",
-                confirmationBlockNumber: 1398800
+                signatoryRecordHash: hex"b731817edaaa402bf57d9dc17d7535bc3a0d0c7d36e72b8b368050baa6251ea6",
+                confirmationBlockNumber: 1709670
             }),
-            inclusionProof: hex"ddfb9c5534618e284d50cd9aaa69b698f57e7c975a62da7cbcbba93ae53c175594a7a9aad947143173bfb7f3c143fdac4e976243dadaa0f8d452a3d92841b3ad007f1652540091ebd4fe75ea367ea3cc2111e9e7b578494296995a41d730083188e3df71366089cbf1757acd13460d14ddee6a7c0ab0f2d15cddecfb1272bbc3c94e723a5cccd1be0a233730a9add4c683786957761454bf4f317253be349ae7c32565a56aecf6e9bbc6cfb56c461f6063273cc50ddc7b7ec9d9704f13284a356a0b0781391e39012c7ef74bd5b98bcd40b1ca1c99404c51c89fdb4401f090bb0a89204793e3c7279de021163f73cbd088ecd14e970220ca6644324961ddf22b50b137ac7a6325934bf8504476bfd88ac1f92850400fdbb0b5a0de8be74b3306108246455a16b90e0032bb76081177992f9ae0736bd08da49cfb1eac55812de3873aa7a12116b7c3d880680b86369459775e3e250f24fd4c375d163f59dcfaaa",
+            inclusionProof: hex"154044d7f4e1c56a0a2d00f1440cf73f06d9a73676578127eb8d2b7a767160443f5826095621dd80f61b4a4ff414eca6288ed9699661ddacf7c3b9ddfaaef34dd8a3e2e2572f03c46dcd963660982fef15186c7109a589d04a151e25b5c02f0fdfada51882930c71bd3fdb89cceb8334b089c765d40b0199ffc601c8d7dc8b2ba78d91a043b2c5a0f58c02169f6e9a62b1f59e0eaeeeb1794305b422b4eee984571b272cfff3f877f7d78a2e3c38aa7264250572555a1abac7af11b45286ba04acbcc250a3960f575fce50391af36b95e913f12981a578e3b537bf5511a70cc41cd42639f03e16ef75baf170bbd37817aa032732064314432ce2dd835c26fc5dc67b622f6916d1de8ac5a299e6c3964fc1e18c89cc3c900070e7e9c48d20861c67474f343b55ea085830fac71b884f4c57f9e04d2bc63559d009dd1aef27a9cf51badedd31f91c56c1ace248c94a2902914841dabc19841c8a1a9d0888a6df3c",
             quorumIndices: hex"0001"
         });
 
-        carbonDataVerifier.uploadProjectStorageProof(
-            datasetName, 
+        projectStorageVerifier.uploadProjectStorageProof(
+            projectName, 
             lastUpdatedHeadCID, 
             blobHeader, 
             blobVerificationProof
         );
-        carbonDataVerifier.verifyProjectStorageProof(datasetName);
-        carbonDataVerifier.readProjectStorageProof(datasetName);
+        projectStorageVerifier.verifyProjectStorageProof(projectName);
+        projectStorageVerifier.readProjectStorageProof(projectName);
 
         vm.stopBroadcast();
     }
