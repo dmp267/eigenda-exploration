@@ -7,7 +7,7 @@ from storage.eigenda import disperse_to_eigenda, retrieve_from_eigenda
 from verification.onchain import store_on_chain, read_store_details, verify_on_chain
 
 # CONSTANTS
-SHAPEFILES = 'data/shapefiles'
+PROJECTS = 'data/projects'
 # PARAMS
 START = datetime.datetime(2023, 1, 1)
 END = datetime.datetime(2023, 2, 1)
@@ -53,7 +53,7 @@ def retrieve_data(id: str):
 
 
 if __name__ == '__main__':
-    polygon_kwargs, spatial_agg_kwargs, temporal_agg_kwargs = get_query_args(f'{SHAPEFILES}/{FILE}')
+    polygon_kwargs, spatial_agg_kwargs, temporal_agg_kwargs = get_query_args(f'{PROJECTS}/{FILE}')
 
     agb_head_cid, agb_agg_query = query("agb-quarterly", polygon_kwargs, spatial_agg_kwargs, temporal_agg_kwargs, START, END)
     deforestation_head_cid, deforestation_agg_query = query("deforestation-quarterly", polygon_kwargs, spatial_agg_kwargs, temporal_agg_kwargs, START, END)

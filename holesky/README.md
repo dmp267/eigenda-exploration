@@ -17,10 +17,10 @@ If deploying new smart contracts:
 ```
 ipfs daemon
 ```
-* To run the main app, assuming you have activated the Conda environment above, run
+<!-- * To run the main app, assuming you have activated the Conda environment above, run
 ```
 python app.py
-```
+``` -->
 * To deploy the verifier smart contract, assuming you have an RPC URL, an [Etherscan API key](https://etherscan.io/), and a >0.1 HolETH balance, run
 ```
 # if the EigenDARollupUtils library has not already been deployed then deploy it with
@@ -43,7 +43,7 @@ forge create --rpc-url $RPC_URL \
 ```
 
 ## Examples
-* To test the Carbon script, which pulls a carbon dataset from IPFS, disperses it to EigenDA, and stores and verifies the proof on-chain, run the following:
+* The demo script pulls above-ground biomass and deforestation data from IPFS for coordinate locations specified in a KML, disperses the aggregate data to EigenDA, and stores and verifies the proof on-chain:
 ```
     mkdir eigenda-setup && cd eigenda-setup
     git clone https://github.com/dmp267/eigenda-exploration.git
