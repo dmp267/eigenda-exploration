@@ -248,3 +248,4 @@ def retrieve_from_eigenda(batch_header_hash: str, blob_index: int):
     stored_data = bytes(retrieve_response.data)
     result = decode_retrieval(stored_data)
     return result
+

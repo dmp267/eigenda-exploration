@@ -31,7 +31,7 @@ def read_store_details(project_name: str):
     storage_detail = full_detail[1]
     result = {
         "last_updated_timestamp": datetime.fromtimestamp(int(storage_detail[0])),
-        "last_updated_head_cid": datetime.fromtimestamp(int(project_store[0])),
+        "last_updated_head_cid": project_store[1],
         "blob_index": int(storage_detail[2][1]), 
         "batch_header_hash": storage_detail[1][2]
     }
