@@ -32,6 +32,9 @@ contract CarbonMonitoringVerifier is
     mapping(string => DispersalRequest) public dispersalRequests;
     mapping(bytes32 => string) public jobRequestIDs;
     mapping(bytes32 => CarbonDataQuery) public carbonDataQueries;
+    mapping(string => string[]) public userProjects;
+    mapping(string => bool) public initializedProjects;
+
 
     constructor() ConfirmedOwner(msg.sender) {
         _setChainlinkToken(LINK_ADDRESS);
@@ -41,7 +44,7 @@ contract CarbonMonitoringVerifier is
         projectVerifier = _projectVerifier;
     }
 
-    function requestDisperseData(string calldata _cid) public onlyOwner {
+    function requestDisperseData(string calldata _userID, string calldata _cid) public onlyOwner {
         Chainlink.Request memory req = _buildOperatorRequest(
             DISPERSAL_JOB_ID,
             this.fulfillDisperseData.selector
@@ -50,7 +53,13 @@ contract CarbonMonitoringVerifier is
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
         jobRequestIDs[req.id] = _cid;
         dispersalRequests[_cid].projectID = _cid;
+        if (!initializedProjects[_userID])
+        {
+            userProjects[_userID].push(_cid);
+            initializedProjects[_userID] = true;
+        }
     }
+
 
     function fulfillDisperseData(
         bytes32 _requestId,
@@ -64,6 +73,7 @@ contract CarbonMonitoringVerifier is
             10 minutes;
         dispersalRequests[_cid].lastUpdatedHeadCID = _lastUpdatedHeadCID;
     }
+
 
     function requestPostProof(string calldata _cid) public onlyOwner {
         Chainlink.Request memory req = _buildOperatorRequest(
@@ -84,6 +94,7 @@ contract CarbonMonitoringVerifier is
         jobRequestIDs[req.id] = _cid;
     }
 
+
     function fulfillPostProof(
         bytes32 _requestId
     ) public recordChainlinkFulfillment(_requestId) {
@@ -91,6 +102,7 @@ contract CarbonMonitoringVerifier is
         // _projectVerifier.verifyProjectStorageProof(dispersalRequests[_cid].projectID);
         emit RequestPostProofFulfilled(_requestId, _cid, projectVerifier);
     }
+
 
     function requestCarbonData(
         uint _date,
@@ -104,6 +116,7 @@ contract CarbonMonitoringVerifier is
         req._addUint("date", _date);
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
     }
+
 
     function fulfillCarbonData(
         bytes32 _requestId,
@@ -127,9 +140,11 @@ contract CarbonMonitoringVerifier is
         });
     }
 
+
     function getChainlinkToken() public view returns (address) {
         return _chainlinkTokenAddress();
     }
+
 
     function withdrawLink() public onlyOwner {
         LinkTokenInterface link = LinkTokenInterface(_chainlinkTokenAddress());
@@ -138,6 +153,7 @@ contract CarbonMonitoringVerifier is
             "Unable to transfer"
         );
     }
+
 
     function cancelRequest(
         bytes32 _requestId,
