@@ -44,12 +44,20 @@ contract CarbonMonitoringVerifier is
         projectVerifier = _projectVerifier;
     }
 
-    function requestDisperseData(string calldata _userID, string calldata _cid) public onlyOwner {
+    function requestDisperseData(
+        uint _start,
+        uint _end,
+        string calldata _userID, 
+        string calldata _cid
+    ) public onlyOwner {
         Chainlink.Request memory req = _buildOperatorRequest(
             DISPERSAL_JOB_ID,
             this.fulfillDisperseData.selector
         );
         req._add("cid", _cid);
+        req._addUint("start", _start);
+        req._addUint("end", _end);
+
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
         jobRequestIDs[req.id] = _cid;
         dispersalRequests[_cid].projectID = _cid;
