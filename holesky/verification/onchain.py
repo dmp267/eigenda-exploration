@@ -6,7 +6,7 @@ from web3 import Web3
 # CONSTANTS
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '0x00')
 WALLET_ADDRESS = os.environ.get('WALLET_ADDRESS', '0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1')
-VERIFIER_CONTRACT_ADDRESS = os.environ.get('VERIFIER_CONTRACT_ADDRESS', '0x434a156aA863c66FAd723a7e3fb68C317DF5f0b7')
+VERIFIER_CONTRACT_ADDRESS = os.environ.get('VERIFIER_CONTRACT_ADDRESS', '0x1759D3920122C2397Ef17b475d3a3D75047f4a41')
 RPC_URL = os.environ.get('RPC_URL', "https://ethereum-holesky-rpc.publicnode.com")
 ABI = json.load(open('verification/foundry/out/ProjectStorageVerifier.sol/ProjectStorageVerifier.json'))['abi']
 
@@ -39,7 +39,7 @@ def read_store_details(project_id: str):
     return result
 
 
-def store_on_chain(project_id: str, cid: str, result: str):
+def store_on_chain(project_id: str, head_cid: str, result: str):
     """
     Store the storage details of a carbon monitoring/management project on the smart contract.
 
@@ -92,7 +92,7 @@ def store_on_chain(project_id: str, cid: str, result: str):
     nonce = web3.eth.get_transaction_count(WALLET_ADDRESS)
     upload_proof = contract.functions.uploadProjectStorageProof(
         project_id,
-        cid,
+        head_cid,
         blob_header_args, 
         blob_verification_proof_args).build_transaction({
             "chainId": chainId, 

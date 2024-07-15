@@ -209,16 +209,17 @@ def confirm_dispersal(id: str):
     status_request = BlobStatusRequest(request_id=id)
     response = stub.GetBlobStatus(status_request)
     if response.status > 1:
+        # print(f'Dispersal confirmed: {response}')
         return(transform_response(response.info))
+    print('Dispersal not confirmed')
     raise Exception("Dispersal not confirmed")
 
 
-def disperse_to_eigenda(project_id: str, data: bytes):
+def disperse_to_eigenda(data: bytes):
     """
     Disperse data to EigenDA.
 
     Parameters:
-        id (str): The id of the data.
         data (bytes): The data to disperse.
     
     Returns:

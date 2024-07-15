@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {IBlobVerifier, EigenDARollupUtils} from "./IBlobVerifier.sol";
 
 
-interface IProjectStorageVerifier {
+interface IProjectStorageVerifier is IBlobVerifier {
 
     // STRUCTS
     struct ProjectStore {

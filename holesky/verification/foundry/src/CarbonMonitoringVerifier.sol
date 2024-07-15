@@ -28,7 +28,7 @@ contract CarbonMonitoringVerifier is
     bytes32 constant CONFIRM_JOB_ID = "8808538aeb2d4309a33af1edc9feb452"; // <- Holesky
     bytes32 constant DATA_JOB_ID = "fb8dbec0c82b45bda79f0edb5b693872"; // <- Holesky
 
-    address public projectVerifier;
+    address public projectVerifier = 0x1759D3920122C2397Ef17b475d3a3D75047f4a41;
     mapping(string => DispersalRequest) public dispersalRequests;
     mapping(bytes32 => string) public jobRequestIDs;
     mapping(string => CarbonDataQuery) public carbonDataQueries;
@@ -105,7 +105,8 @@ contract CarbonMonitoringVerifier is
     function fulfillConfirmData(
         bytes32 _requestId
     ) public recordChainlinkFulfillment(_requestId) {
-        // _projectVerifier.verifyProjectStorageProof(dispersalRequests[_cid].projectID);
+        // optionally call the verification function on fulfillment
+        // _projectVerifier.verifyProjectStorageProof(jobRequestIDs[_requestId]);
         emit RequestConfirmDataFulfilled(_requestId, jobRequestIDs[_requestId], projectVerifier);
     }
 

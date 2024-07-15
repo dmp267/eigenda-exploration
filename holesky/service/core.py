@@ -15,10 +15,6 @@ PROJECT_STORAGE = 'data/projects'
 MOCK_STORAGE = 'storage/attestations/holesky-852.json'
 
 
-def string_to_timestamp(time):
-    return datetime.strptime(time, "%Y-%m-%dT%H:%M:%S").timestamp()
-
-
 def format_float(n):
     # truncate to 3 decimals and add commas
     return "{:,}".format(round(n, 3))
@@ -29,14 +25,8 @@ def format_power(n):
     return f"10^{exponent}"
 
 
-# def filter_to_date(data: str, date: datetime.datetime):
-#     data = json.loads(data)
-#     for key in data.keys():
-#         if type(data[key]) == dict:
-#             data[key] = filter_to_date(json.dumps(data[key]), date)
-#         if key == 'timestamp_ms':
-#             data[key] = int(string_to_timestamp(data[key]) * 1e3)
-#     return data
+def string_to_timestamp(time):
+    return datetime.strptime(time, "%Y-%m-%dT%H:%M:%S").timestamp()
 
 
 def get_most_recent_data(polygon_kwargs: dict, spatial_agg_kwargs: dict, temporal_agg_kwargs: dict):
@@ -98,23 +88,27 @@ def query_data(polygon_kwargs: dict, spatial_agg_kwargs: dict, temporal_agg_kwar
 
     results = {
         "summary": f'Above ground biomass measured at {format_float(agb_agg_query["data"][0])} {agb_agg_query["unit of measurement"]}, deforestation measured at {format_float(deforestation_agg_query["data"][0])} {deforestation_agg_query["unit of measurement"]}, and carbon sequestration measured at {format_float(agb_agg_query["data"][0] * SEQUESTRATION_RATIO)} {agb_agg_query["unit of measurement"]} as of {agb_agg_query["times"][0]}.',
+        "timestamps_ms": [int(string_to_timestamp(agb_agg_query['times'][i]) * 1e3) for i in range(len(agb_agg_query['data']))],
         "agb": {
-            "timestamp_ms": int(string_to_timestamp(agb_agg_query['times'][0]) * 1e3),
-            "data": int(agb_agg_query['data'][0] * FLOAT_MULTIPLIER),
+            "data": [int(agb_agg_query['data'][i] * FLOAT_MULTIPLIER) for i in range(len(agb_agg_query['data']))],
             "unit": f"{agb_agg_query['unit of measurement']} / {format_power(int(FLOAT_MULTIPLIER))}",
             "head_cid": agb_head_cid,
         },
         "deforestation": {
-            "timestamp_ms": int(string_to_timestamp(deforestation_agg_query['times'][0]) * 1e3),
-            "data": int(deforestation_agg_query['data'][0] * FLOAT_MULTIPLIER),
+            # "timestamps_ms": [int(string_to_timestamp(deforestation_agg_query['times'][i]) * 1e3) for i in range(len(deforestation_agg_query['data']))],
+            "data": [int(deforestation_agg_query['data'][i] * FLOAT_MULTIPLIER) for i in range(len(deforestation_agg_query['data']))],
+            # "timestamps_ms": int(string_to_timestamp(deforestation_agg_query['times'][0]) * 1e3),
+            # "data": int(deforestation_agg_query['data'][0] * FLOAT_MULTIPLIER),
             "unit": f"{deforestation_agg_query['unit of measurement']} / {format_power(int(FLOAT_MULTIPLIER))}",
             "head_cid": deforestation_head_cid,
         },
         "sequestration": {
-            "data": int(agb_agg_query['data'][0] * FLOAT_MULTIPLIER * SEQUESTRATION_RATIO),
+            "data": [int(agb_agg_query['data'][i] * FLOAT_MULTIPLIER * SEQUESTRATION_RATIO) for i in range(len(agb_agg_query['data']))],
+            # "data": int(agb_agg_query['data'][0] * FLOAT_MULTIPLIER * SEQUESTRATION_RATIO),
             "unit": f"{agb_agg_query['unit of measurement']} / {format_power(int(FLOAT_MULTIPLIER))}"
         },
     }
+    print(f'data: {results}')
     return results
 
 
@@ -148,6 +142,7 @@ def start_store_data(data: str):
 
 def finish_store_data(project_id: str, head_cid: str, dispersal_id: str):
     result = confirm_dispersal(dispersal_id)
+    print(f'Confirmation: {result}')
     receipt = store_on_chain(project_id, head_cid, result)
     verify_on_chain(project_id)
     print(f'On-chain storage receipt: {receipt}')
@@ -157,5 +152,4 @@ def retrieve_data(id: str, date: datetime = None):
     verify_on_chain(id)
     store_details = read_store_details(id)
     data = retrieve_from_eigenda(store_details['batch_header_hash'], store_details['blob_index'])
-    # date_data = filter_to_date(data, date)
     return json.loads(data)
