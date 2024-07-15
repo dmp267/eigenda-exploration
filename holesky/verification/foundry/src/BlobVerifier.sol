@@ -2,35 +2,29 @@
 pragma solidity ^0.8.24;
 
 import {EigenDARollupUtils, IEigenDAServiceManager, BN254} from "../lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol";
-import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
+
+import "./IBlobVerifier.sol";
 
 
-contract BlobVerifier is Ownable {
-
-    struct ModifiedBlobHeader {
-        BN254.G1Point commitment;
-        uint32 dataLength;
-        bytes32 batchHeaderHash;
-        uint8[] quorumNumbers;
-        uint8[] adversaryThresholdPercentages;
-        uint8[] confirmationThresholdPercentages; 
-        uint32[] chunkLengths;
-    }
+contract BlobVerifier is IBlobVerifier, AccessControl {
     
     // HOLESKY
     address constant serviceManagerAddress = 0xD4A7E1Bd8015057293f0D0A557088c286942e84b;
-
-    struct StorageDetail {
-        uint256 lastUpdatedTimestamp;
-        ModifiedBlobHeader blobHeader;
-        EigenDARollupUtils.BlobVerificationProof blobVerificationProof;
-    }
-
     StorageDetail[] internal storageDetails;
     mapping (string => uint) internal storageDetailsIndex; // always stores index + 1 to differentiate from default value 0
 
+    bytes32 public constant SETTER_ROLE = keccak256("SETTER_ROLE");
 
-    constructor(address owner) Ownable(owner) {}
+
+    constructor(address owner) {
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+    }
+
+
+    function grantSetterRole(address _setter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _grantRole(SETTER_ROLE, _setter);
+    }
 
 
     function readStorageDetail(string calldata id) 
@@ -48,7 +42,7 @@ contract BlobVerifier is Ownable {
         ModifiedBlobHeader calldata _blobHeader,
         EigenDARollupUtils.BlobVerificationProof calldata _blobVerificationProof,
         string calldata id
-    ) public onlyOwner {
+    ) public onlyRole(SETTER_ROLE) {
         uint index = storageDetailsIndex[id];
         if (index == 0) {
             index = storageDetails.length + 1;

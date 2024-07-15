@@ -2,22 +2,16 @@
 pragma solidity ^0.8.24;
 
 import "./BlobVerifier.sol";
+import "./IProjectStorageVerifier.sol";
 
 
-contract ProjectStorageVerifier is BlobVerifier {
-
-    // storage details for carbon monitoring projects
-    struct ProjectStore {
-        bool exists;
-        string lastUpdatedHeadCID;
-        // coords?
-    }
+contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
 
     // return type for readProjectStorageDetails
-    struct FullStore {
-        ProjectStore projectStore;
-        StorageDetail storageDetail;
-    }
+    // struct FullStore {
+    //     ProjectStore projectStore;
+    //     StorageDetail storageDetail;
+    // }
 
     mapping(string => ProjectStore) public projects;
 
@@ -26,45 +20,45 @@ contract ProjectStorageVerifier is BlobVerifier {
 
 
     function uploadProjectStorageProof(
-        string calldata projectName,
+        string calldata projectID,
         string calldata lastUpdatedHeadCID,
         ModifiedBlobHeader calldata _blobHeader,
         EigenDARollupUtils.BlobVerificationProof calldata _blobVerificationProof
-    ) external onlyOwner {
-        if (projects[projectName].exists) {
-            require(block.timestamp - readStorageDetail(projectName).lastUpdatedTimestamp > 90 days, "ProjectStorageVerifier: project already updated within 90 days");
-        }
+    ) external onlyRole(SETTER_ROLE) {
+        // if (projects[projectID].exists) {
+        //     require(block.timestamp - readStorageDetail(projectID).lastUpdatedTimestamp > 90 days, "ProjectStorageVerifier: project already updated within 90 days");
+        // }
 
         setStorageDetail(
             _blobHeader, 
             _blobVerificationProof, 
-            projectName
+            projectID
         );
 
-        projects[projectName] = ProjectStore({
+        projects[projectID] = ProjectStore({
             exists: true,
             lastUpdatedHeadCID: lastUpdatedHeadCID
         });
     }
 
 
-    function verifyProjectStorageProof(string calldata projectName) 
+    function verifyProjectStorageProof(string calldata projectID) 
         external 
         view
     {
-        require(projects[projectName].exists, "ProjectStorageVerifier: invalid project");
-        verifyAttestation(projectName);
+        require(projects[projectID].exists, "ProjectStorageVerifier: invalid project");
+        verifyAttestation(projectID);
     }
 
 
-    function readProjectStorageProof(string calldata projectName) 
+    function readProjectStorageProof(string calldata projectID) 
         external 
         view 
         returns (FullStore memory) 
     {
         return FullStore({
-            projectStore: projects[projectName],
-            storageDetail: readStorageDetail(projectName)
+            projectStore: projects[projectID],
+            storageDetail: readStorageDetail(projectID)
         });
     }
 
