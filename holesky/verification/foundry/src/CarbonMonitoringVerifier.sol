@@ -24,14 +24,14 @@ contract CarbonMonitoringVerifier is
     address constant LINK_ADDRESS = 0xd27376e609bF32b506535efe2bf1303a74Eb5467; // <- Holesky
     address constant OPERATOR_ADDRESS =
         0xCCda5E49Ff369640EdfA0fb58fb6AF165B53B8B5; // <- Holesky
-    bytes32 constant DISPERSAL_JOB_ID = "fb8dbec0c82b45bda79f0edb5b693872"; // <- Holesky
-    bytes32 constant POST_PROOF_JOB_ID = "fb8dbec0c82b45bda79f0edb5b693872"; // <- Holesky
+    bytes32 constant DISPERSAL_JOB_ID = "eaf2170545dc4793aadd19aa3dc82d66"; // <- Holesky
+    bytes32 constant CONFIRM_JOB_ID = "8808538aeb2d4309a33af1edc9feb452"; // <- Holesky
     bytes32 constant DATA_JOB_ID = "fb8dbec0c82b45bda79f0edb5b693872"; // <- Holesky
 
     address public projectVerifier;
     mapping(string => DispersalRequest) public dispersalRequests;
     mapping(bytes32 => string) public jobRequestIDs;
-    mapping(bytes32 => CarbonDataQuery) public carbonDataQueries;
+    mapping(string => CarbonDataQuery) public carbonDataQueries;
     mapping(string => string[]) public userProjects;
     mapping(string => bool) public initializedProjects;
 
@@ -40,13 +40,16 @@ contract CarbonMonitoringVerifier is
         _setChainlinkToken(LINK_ADDRESS);
     }
 
+
     function setProjectVerifier(address _projectVerifier) public onlyOwner {
         projectVerifier = _projectVerifier;
     }
 
+
     function requestDisperseData(
         uint _start,
         uint _end,
+        string calldata _projectID, 
         string calldata _userID, 
         string calldata _cid
     ) public onlyOwner {
@@ -54,79 +57,75 @@ contract CarbonMonitoringVerifier is
             DISPERSAL_JOB_ID,
             this.fulfillDisperseData.selector
         );
+        req._add("projectID", _projectID);
         req._add("cid", _cid);
         req._addUint("start", _start);
         req._addUint("end", _end);
 
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
-        jobRequestIDs[req.id] = _cid;
-        dispersalRequests[_cid].projectID = _cid;
+        jobRequestIDs[req.id] = _projectID;
         if (!initializedProjects[_userID])
         {
-            userProjects[_userID].push(_cid);
+            userProjects[_userID].push(_projectID);
             initializedProjects[_userID] = true;
+            dispersalRequests[_projectID].cid = _cid;
         }
     }
 
 
     function fulfillDisperseData(
         bytes32 _requestId,
-        string memory _postProofID,
+        string memory _dispersalRequestID,
         string memory _lastUpdatedHeadCID
     ) public recordChainlinkFulfillment(_requestId) {
-        string memory _cid = jobRequestIDs[_requestId];
-        dispersalRequests[_cid].dispersalRequestID = _postProofID;
-        dispersalRequests[_cid].expectedTimeofDispersal =
-            block.timestamp +
-            10 minutes;
-        dispersalRequests[_cid].lastUpdatedHeadCID = _lastUpdatedHeadCID;
+        string memory _projectID = jobRequestIDs[_requestId];
+        dispersalRequests[_projectID].expectedTimeofDispersal = block.timestamp + 10 minutes;
+        dispersalRequests[_projectID].dispersalRequestID = _dispersalRequestID;
+        dispersalRequests[_projectID].lastUpdatedHeadCID = _lastUpdatedHeadCID;
     }
 
 
-    function requestPostProof(string calldata _cid) public onlyOwner {
+    function requestConfirmData(string calldata _projectID) public onlyOwner {
         Chainlink.Request memory req = _buildOperatorRequest(
-            POST_PROOF_JOB_ID,
-            this.fulfillPostProof.selector
+            CONFIRM_JOB_ID,
+            this.fulfillConfirmData.selector
         );
         require(
-            dispersalRequests[_cid].expectedTimeofDispersal > block.timestamp,
+            dispersalRequests[_projectID].expectedTimeofDispersal > block.timestamp,
             "please wait"
         );
 
-        req._add("cid", _cid);
-        req._add(
-            "dispersalRequestID",
-            dispersalRequests[_cid].dispersalRequestID
-        );
+        req._add("projectID", _projectID);
+        req._add("dispersalRequestID",dispersalRequests[_projectID].dispersalRequestID);
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
-        jobRequestIDs[req.id] = _cid;
+        jobRequestIDs[req.id] = _projectID;
     }
 
 
-    function fulfillPostProof(
+    function fulfillConfirmData(
         bytes32 _requestId
     ) public recordChainlinkFulfillment(_requestId) {
-        string memory _cid = jobRequestIDs[_requestId];
         // _projectVerifier.verifyProjectStorageProof(dispersalRequests[_cid].projectID);
-        emit RequestPostProofFulfilled(_requestId, _cid, projectVerifier);
+        emit RequestConfirmDataFulfilled(_requestId, jobRequestIDs[_requestId], projectVerifier);
     }
 
 
-    function requestCarbonData(
+    function requestRetrieveData(
         uint _date,
-        string calldata _cid
+        string calldata _projectID
     ) public onlyOwner {
         Chainlink.Request memory req = _buildOperatorRequest(
             DATA_JOB_ID,
-            this.fulfillCarbonData.selector
+            this.fulfillRetrieveData.selector
         );
-        req._add("cid", _cid);
+        req._add("projectID", _projectID);
         req._addUint("date", _date);
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
+        jobRequestIDs[req.id] = _projectID;
     }
 
 
-    function fulfillCarbonData(
+    function fulfillRetrieveData(
         bytes32 _requestId,
         uint256 _agbData,
         uint256 _defData,
@@ -135,13 +134,13 @@ contract CarbonMonitoringVerifier is
         string calldata _defUnit,
         string calldata _seqUnit
     ) public recordChainlinkFulfillment(_requestId) {
-        emit RequestCarbonDataFulfilled(
+        emit RequestRetrieveDataFulfilled(
             _requestId,
             _agbUnit,
             _defUnit,
             _seqUnit
         );
-        carbonDataQueries[_requestId] = CarbonDataQuery({
+        carbonDataQueries[jobRequestIDs[_requestId]] = CarbonDataQuery({
             agb: _agbData,
             deforestation: _defData,
             sequestration: _seqData

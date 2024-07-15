@@ -1,0 +1,37 @@
+type = "directrequest"
+schemaVersion = 1
+name = "disperse-carbon-data-holesky"
+externalJobID = "eaf21705-45dc-4793-aadd-19aa3dc82d66"
+forwardingAllowed = false
+maxTaskDuration = "1m0s"
+contractAddress = "0xCCda5E49Ff369640EdfA0fb58fb6AF165B53B8B5"
+evmChainID = "17000"
+minIncomingConfirmations = 0
+minContractPaymentLinkJuels = "0"
+observationSource = """
+    decode_log   [type="ethabidecodelog"
+                  abi="OracleRequest(bytes32 indexed specId, address requester, bytes32 requestId, uint256 payment, address callbackAddr, bytes4 callbackFunctionId, uint256 cancelExpiration, uint256 dataVersion, bytes data)"
+                  data="$(jobRun.logData)"
+                  topics="$(jobRun.logTopics)"]
+    decode_cbor  [type="cborparse" data="$(decode_log.data)"]
+    query    [type=bridge name="disperse-carbon-data" requestData="{\\"id\\": $(jobSpec.externalJobID),\\"data\\":{\\"project_id\\":$(decode_cbor.projectID), \\"cid\\":$(decode_cbor.cid), \\"start\\":$(decode_cbor.start), \\"end\\":$(decode_cbor.end)}}"]
+
+    dispersal_id  [type=jsonparse path="result,dispersal_id" data="$(query)"]
+    head_cid     [type=jsonparse path="result,head_cid" data="$(query)"]
+
+    // MWR API does NOT auto populate the requestID.
+    encode_mwr [type="ethabiencode"
+                abi="(bytes32 _requestId)"
+                data="{\\"_requestId\\": $(decode_log.requestId), \\"_dispersalID\\": $(decode_log.dispersal_id), \\"_lastUpdatedHeadCID\\": $(decode_log.head_cid)}"
+                ]
+    encode_tx  [type="ethabiencode"
+                abi="fulfillOracleRequest2(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes calldata data)"
+                data="{\\"requestId\\": $(decode_log.requestId), \\"payment\\":   $(decode_log.payment), \\"callbackAddress\\": $(decode_log.callbackAddr), \\"callbackFunctionId\\": $(decode_log.callbackFunctionId), \\"expiration\\": $(decode_log.cancelExpiration), \\"data\\": $(encode_mwr)}"
+                ]
+    submit_tx  [type="ethtx" from="[\\"0x01ffEeA6D026A4cc22b48006D666D2435fd13AA7\\"]" evmChainID="17000" to="0xCCda5E49Ff369640EdfA0fb58fb6AF165B53B8B5" data="$(encode_tx)" minConfirmations="2"]
+
+    decode_log -> decode_cbor -> query
+    query -> dispersal_id -> encode_mwr
+    query -> head_cid -> encode_mwr
+    encode_mwr -> encode_tx -> submit_tx
+"""

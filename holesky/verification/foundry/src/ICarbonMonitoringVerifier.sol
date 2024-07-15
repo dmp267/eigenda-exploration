@@ -4,13 +4,13 @@ pragma solidity ^0.8.24;
 interface ICarbonMonitoringVerifier {
 
     // EVENTS
-    event RequestPostProofFulfilled(
+    event RequestConfirmDataFulfilled(
         bytes32 requestId,
         string indexed projectID,
         address indexed projectVerifier
     );
 
-    event RequestCarbonDataFulfilled(
+    event RequestRetrieveDataFulfilled(
         bytes32 requestId,
         string indexed agbUnit,
         string indexed deforestationUnit,
@@ -20,7 +20,7 @@ interface ICarbonMonitoringVerifier {
     // STRUCTS
     struct DispersalRequest {
         uint expectedTimeofDispersal;
-        string projectID;
+        string cid;
         string dispersalRequestID;
         string lastUpdatedHeadCID;
     }
@@ -32,7 +32,13 @@ interface ICarbonMonitoringVerifier {
     }
 
     // FUNCTIONS
-    function requestDisperseData(string calldata _cid) external;
+    function requestDisperseData(
+        uint _start,
+        uint _end,
+        string calldata _projectID, 
+        string calldata userID, 
+        string calldata _cid
+    ) external;
 
 
     function fulfillDisperseData(
@@ -42,16 +48,16 @@ interface ICarbonMonitoringVerifier {
     ) external;
 
 
-    function requestPostProof(string calldata _cid) external;
+    function requestConfirmData(string calldata _cid) external;
 
 
-    function fulfillPostProof(bytes32 _requestId) external;
+    function fulfillConfirmData(bytes32 _requestId) external;
 
 
-    function requestCarbonData(uint _date, string calldata _cid) external;
+    function requestRetrieveData(uint _date, string calldata _projectID) external;
 
 
-    function fulfillCarbonData(
+    function fulfillRetrieveData(
         bytes32 _requestId,
         uint256 _agbData, 
         uint256 _defData, 

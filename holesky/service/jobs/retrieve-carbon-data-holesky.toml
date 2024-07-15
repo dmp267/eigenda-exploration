@@ -1,0 +1,47 @@
+type = "directrequest"
+schemaVersion = 1
+name = "retrieve-carbon-data-holesky"
+externalJobID = "fb8dbec0-c82b-45bd-a79f-0edb5b693872"
+forwardingAllowed = false
+maxTaskDuration = "1m0s"
+contractAddress = "0xCCda5E49Ff369640EdfA0fb58fb6AF165B53B8B5"
+evmChainID = "17000"
+minIncomingConfirmations = 0
+minContractPaymentLinkJuels = "0"
+observationSource = """
+    decode_log   [type="ethabidecodelog"
+                  abi="OracleRequest(bytes32 indexed specId, address requester, bytes32 requestId, uint256 payment, address callbackAddr, bytes4 callbackFunctionId, uint256 cancelExpiration, uint256 dataVersion, bytes data)"
+                  data="$(jobRun.logData)"
+                  topics="$(jobRun.logTopics)"]
+    decode_cbor  [type="cborparse" data="$(decode_log.data)"]
+    query    [type=bridge name="retrieve-carbon-data" requestData="{\\"id\\": $(jobSpec.externalJobID),\\"data\\":{\\"project_id\\":$(decode_cbor.projectID), \\"date\\":$(decode_cbor.date)}}"]
+
+    agb_data   [type=jsonparse path="agb,data" data="$(query)"]
+    agb_unit   [type=jsonparse path="agb,unit" data="$(query)"]
+
+    def_data   [type=jsonparse path="deforestation,data" data="$(query)"]
+    def_unit   [type=jsonparse path="deforestation,unit" data="$(query)"]
+
+    seq_data   [type=jsonparse path="sequestration,data" data="$(query)"]
+    seq_unit   [type=jsonparse path="sequestration,unit" data="$(query)"]
+
+    // MWR API does NOT auto populate the requestID.
+    encode_mwr [type="ethabiencode"
+                abi="(bytes32 _requestId, uint256 _headTime, uint256 _agbData, uint256 _defData, uint256 _seqData, string memory _headCid, string memory _agbUnit, string memory _defUnit, string memory _seqUnit)"
+                data="{\\"_requestId\\": $(decode_log.requestId), \\"_agbData\\": $(agb_data), \\"_defData\\": $(def_data), \\"_seqData\\": $(seq_data), \\"_agbUnit\\": $(agb_unit), \\"_defUnit\\": $(def_unit), \\"_seqUnit\\": $(seq_unit)}"
+                ]
+    encode_tx  [type="ethabiencode"
+                abi="fulfillOracleRequest2(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes calldata data)"
+                data="{\\"requestId\\": $(decode_log.requestId), \\"payment\\":   $(decode_log.payment), \\"callbackAddress\\": $(decode_log.callbackAddr), \\"callbackFunctionId\\": $(decode_log.callbackFunctionId), \\"expiration\\": $(decode_log.cancelExpiration), \\"data\\": $(encode_mwr)}"
+                ]
+    submit_tx  [type="ethtx" from="[\\"0x01ffEeA6D026A4cc22b48006D666D2435fd13AA7\\"]" evmChainID="17000" to="0xCCda5E49Ff369640EdfA0fb58fb6AF165B53B8B5" data="$(encode_tx)" minConfirmations="2"]
+
+    decode_log -> decode_cbor -> query
+    query -> agb_data -> encode_mwr
+    query -> agb_unit -> encode_mwr
+    query -> def_data -> encode_mwr
+    query -> def_unit -> encode_mwr
+    query -> seq_data -> encode_mwr
+    query -> seq_unit -> encode_mwr
+    encode_mwr -> encode_tx -> submit_tx
+"""
