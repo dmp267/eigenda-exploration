@@ -13,6 +13,8 @@ import "./IProjectStorageVerifier.sol";
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
+// CURRENT DEPLOYED ADDRESS: 0x13b768dB9A4c5488CDC0697F6512718bF13eD3E2
+// Need to redeploy this
 contract CarbonMonitoringVerifier is
     ICarbonMonitoringVerifier,
     ChainlinkClient,
@@ -29,11 +31,11 @@ contract CarbonMonitoringVerifier is
     bytes32 constant DATA_JOB_ID = "fb8dbec0c82b45bda79f0edb5b693872"; // <- Holesky
 
     address public projectVerifier = 0x1759D3920122C2397Ef17b475d3a3D75047f4a41;
-    mapping(string => DispersalRequest) public dispersalRequests;
-    mapping(bytes32 => string) public jobRequestIDs;
-    mapping(string => CarbonDataQuery) public carbonDataQueries;
+    mapping(bytes32 => DispersalRequest) public dispersalRequests;
+    mapping(bytes32 => bytes32) public jobRequestIDs;
+    mapping(bytes32 => CarbonDataQuery) public carbonDataQueries;
+    mapping(bytes32 => bool) public initializedProjects;
     mapping(string => string[]) public userProjects;
-    mapping(string => bool) public initializedProjects;
 
 
     constructor() ConfirmedOwner(msg.sender) {
@@ -49,25 +51,28 @@ contract CarbonMonitoringVerifier is
     function requestDisperseData(
         uint _start,
         uint _end,
-        string calldata _projectID, 
-        string calldata _userID, 
+        string calldata _projectName,
+        string calldata _userID,
         string calldata _cid
     ) public onlyOwner {
         Chainlink.Request memory req = _buildOperatorRequest(
             DISPERSAL_JOB_ID,
             this.fulfillDisperseData.selector
         );
-        req._add("projectID", _projectID);
+
+        bytes32 _projectID = keccak256(
+            abi.encodePacked(_userID, ":", _projectName)
+        );
+        req._addBytes("projectID", abi.encodePacked(_projectID));
         req._add("cid", _cid);
         req._addUint("start", _start);
         req._addUint("end", _end);
 
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
         jobRequestIDs[req.id] = _projectID;
-        if (!initializedProjects[_userID])
-        {
-            userProjects[_userID].push(_projectID);
-            initializedProjects[_userID] = true;
+        if (!initializedProjects[_projectID]) {
+            userProjects[_userID].push(_projectName);
+            initializedProjects[_projectID] = true;
             dispersalRequests[_projectID].cid = _cid;
         }
     }
@@ -78,25 +83,30 @@ contract CarbonMonitoringVerifier is
         string memory _dispersalRequestID,
         string memory _lastUpdatedHeadCID
     ) public recordChainlinkFulfillment(_requestId) {
-        string memory _projectID = jobRequestIDs[_requestId];
-        dispersalRequests[_projectID].expectedTimeofDispersal = block.timestamp + 10 minutes;
+        bytes32 _projectID = jobRequestIDs[_requestId];
+        dispersalRequests[_projectID].expectedTimeofDispersal =
+            block.timestamp +
+            10 minutes;
         dispersalRequests[_projectID].dispersalRequestID = _dispersalRequestID;
         dispersalRequests[_projectID].lastUpdatedHeadCID = _lastUpdatedHeadCID;
     }
 
 
-    function requestConfirmData(string calldata _projectID) public onlyOwner {
+    function requestConfirmData(bytes32 _projectID) public onlyOwner {
         Chainlink.Request memory req = _buildOperatorRequest(
             CONFIRM_JOB_ID,
             this.fulfillConfirmData.selector
         );
         require(
-            dispersalRequests[_projectID].expectedTimeofDispersal > block.timestamp,
+            dispersalRequests[_projectID].expectedTimeofDispersal >
+                block.timestamp,
             "please wait"
         );
-
-        req._add("projectID", _projectID);
-        req._add("dispersalRequestID",dispersalRequests[_projectID].dispersalRequestID);
+        req._addBytes("projectID", abi.encodePacked(_projectID));
+        req._add(
+            "dispersalRequestID",
+            dispersalRequests[_projectID].dispersalRequestID
+        );
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
         jobRequestIDs[req.id] = _projectID;
     }
@@ -107,19 +117,23 @@ contract CarbonMonitoringVerifier is
     ) public recordChainlinkFulfillment(_requestId) {
         // optionally call the verification function on fulfillment
         // _projectVerifier.verifyProjectStorageProof(jobRequestIDs[_requestId]);
-        emit RequestConfirmDataFulfilled(_requestId, jobRequestIDs[_requestId], projectVerifier);
+        emit RequestConfirmDataFulfilled(
+            _requestId,
+            jobRequestIDs[_requestId],
+            projectVerifier
+        );
     }
 
 
     function requestRetrieveData(
         uint _date,
-        string calldata _projectID
+        bytes32 _projectID
     ) public onlyOwner {
         Chainlink.Request memory req = _buildOperatorRequest(
             DATA_JOB_ID,
             this.fulfillRetrieveData.selector
         );
-        req._add("projectID", _projectID);
+        req._addBytes("projectID", abi.encodePacked(_projectID));
         req._addUint("date", _date);
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
         jobRequestIDs[req.id] = _projectID;

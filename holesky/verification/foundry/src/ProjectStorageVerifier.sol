@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "./BlobVerifier.sol";
 import "./IProjectStorageVerifier.sol";
 
-
+// CURRENT DEPLOYED ADDRESS: 0x1759D3920122C2397Ef17b475d3a3D75047f4a41
 contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
 
     // return type for readProjectStorageDetails

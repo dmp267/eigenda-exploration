@@ -6,7 +6,7 @@ interface ICarbonMonitoringVerifier {
     // EVENTS
     event RequestConfirmDataFulfilled(
         bytes32 requestId,
-        string indexed projectID,
+        bytes32 indexed projectID,
         address indexed projectVerifier
     );
 
@@ -35,7 +35,7 @@ interface ICarbonMonitoringVerifier {
     function requestDisperseData(
         uint _start,
         uint _end,
-        string calldata _projectID, 
+        string calldata _projectName,
         string calldata userID, 
         string calldata _cid
     ) external;
@@ -43,18 +43,18 @@ interface ICarbonMonitoringVerifier {
 
     function fulfillDisperseData(
         bytes32 _requestId, 
-        string memory _postProofID,
+        string memory _dispersalRequestID,
         string memory _lastUpdatedHeadCID
     ) external;
 
 
-    function requestConfirmData(string calldata _cid) external;
+    function requestConfirmData(bytes32 _projectID) external;
 
 
     function fulfillConfirmData(bytes32 _requestId) external;
 
 
-    function requestRetrieveData(uint _date, string calldata _projectID) external;
+    function requestRetrieveData(uint _date, bytes32 _projectID) external;
 
 
     function fulfillRetrieveData(
