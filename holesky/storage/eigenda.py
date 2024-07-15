@@ -1,12 +1,11 @@
 import os
 import sys
-import time
 import subprocess
 import grpc
 import json
+# import asyncio
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-
 from protobufs.disperser.disperser_pb2 import DisperseBlobRequest, BlobStatusRequest, RetrieveBlobRequest
 from protobufs.disperser.disperser_pb2_grpc import DisperserStub
 
@@ -196,7 +195,25 @@ def transform_response(info):
     return proof_details
 
 
-def disperse_to_eigenda(id: str, data: bytes):
+def confirm_dispersal(id: str):
+    """
+    Confirm the dispersal of data to EigenDA.
+
+    Parameters:
+        id (str): The id of the data.
+
+    Returns:
+        dict: The transformed response from EigenDA.
+    """
+
+    status_request = BlobStatusRequest(request_id=id)
+    response = stub.GetBlobStatus(status_request)
+    if response.status > 1:
+        return(transform_response(response.info))
+    raise Exception("Dispersal not confirmed")
+
+
+def disperse_to_eigenda(project_id: str, data: bytes):
     """
     Disperse data to EigenDA.
 
@@ -209,25 +226,45 @@ def disperse_to_eigenda(id: str, data: bytes):
     """
     encoded_data = encode_for_dispersal(data)   
     disperse_request = DisperseBlobRequest(data=encoded_data)
-
     disperse_response = stub.DisperseBlob(disperse_request)
     print(disperse_response)
+    return disperse_response.request_id
 
-    processing = True
-    result = ''
-    while processing:
-        status_request = BlobStatusRequest(request_id=disperse_response.request_id)
-        status_response = stub.GetBlobStatus(status_request)
-        print(f'status_response: {"CONFIRMED" if status_response == 2 else "PROCESSING"}')
-        if status_response.status == 2: # CONFIRMED
-            processing = False
-            print(status_response)
-            result = transform_response(status_response.info)
-            json.dump(result, open(f'storage/attestations/{id}.json', 'w'))
-        else:
-            print('sleeping')
-            time.sleep(60)
-    return result
+
+# async def get_blob_status_async(id: str):
+
+#     def get_blob_status():
+#         status_request = BlobStatusRequest(request_id=id)
+#         return stub.GetBlobStatus(status_request)
+    
+#     while True:
+#         response = asyncio.to_thread(get_blob_status)
+#         if response.status > 1: # CONFIRMED or FINALIZED
+#             print(response)
+#             result = transform_response(response.info)
+#             # save for debug/mocks
+#             json.dump(result, open(f'storage/attestations/{id}.json', 'w'))
+#             return result
+#         await asyncio.sleep(300)
+
+
+# async def disperse_to_eigenda(id: str, data: bytes):
+#     """
+#     Disperse data to EigenDA.
+
+#     Parameters:
+#         id (str): The id of the data.
+#         data (bytes): The data to disperse.
+    
+#     Returns:
+#         dict: The transformed response from EigenDA.
+#     """
+#     encoded_data = encode_for_dispersal(data)   
+#     disperse_request = DisperseBlobRequest(data=encoded_data)
+#     disperse_response = stub.DisperseBlob(disperse_request)
+#     print(disperse_response)
+
+#     return await get_blob_status_async(disperse_response.request_id)
 
 
 def retrieve_from_eigenda(batch_header_hash: str, blob_index: int):
@@ -243,8 +280,6 @@ def retrieve_from_eigenda(batch_header_hash: str, blob_index: int):
     """
     retrieve_request = RetrieveBlobRequest(batch_header_hash=batch_header_hash, blob_index=blob_index)
     retrieve_response = stub.RetrieveBlob(retrieve_request)
-    # print(retrieve_response)
-
     stored_data = bytes(retrieve_response.data)
     result = decode_retrieval(stored_data)
     return result

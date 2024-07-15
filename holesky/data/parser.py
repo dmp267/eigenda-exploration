@@ -4,26 +4,23 @@ from pykml import parser
 from shapely import Polygon, MultiPolygon
 
 
-def parse_kwargs(data):
+def parse_kml(kml_path):
     """
-    Parse the KML file and return the necessary kwargs for the geo_temporal_query function.
+    Parse the KML file at the provided file path and return the necessary 
+    kwargs for the geo_temporal_query function.
 
     Parameters:
-        data (str or file-like object): The KML file.
+        data str: The KML file path
     
     Returns:    
         dict: The kwargs for the geo_temporal_query function.
     """
-    if os.path.exists(data):
-        with open(data, 'r', encoding='utf-8') as f:
+    if os.path.exists(kml_path):
+        with open(kml_path, 'r', encoding='utf-8') as f:
             root = parser.parse(f).getroot()
             f.close()
     else:
-        try:
-            root = parser.parse(data).getroot()
-        except:
-            raise ValueError("Invalid data provided.")
-            
+        raise ValueError("Invalid data provided.")
     polygons_mask = []
     for folder in root.Document.Folder:
         for placemark in folder.Placemark:
@@ -46,7 +43,6 @@ def parse_kwargs(data):
 
     polygon_kwargs = { "polygons_mask": gpd.array.from_shapely(polygons_mask) }
     spatial_agg_kwargs = { "agg_method": "sum" }
-    # temporal_agg_kwargs = { "time_period": "day", "agg_method": "sum" }
     temporal_agg_kwargs = None
 
     return {
