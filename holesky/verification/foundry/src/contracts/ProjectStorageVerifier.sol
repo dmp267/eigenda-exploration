@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "./BlobVerifier.sol";
-import "./IProjectStorageVerifier.sol";
+import "../contracts/BlobVerifier.sol";
+import "../interfaces/IProjectStorageVerifier.sol";
 
 // CURRENT DEPLOYED ADDRESS: 0x8032b4DBa3779B6836B4C69203bB1d3b4f92908B
 contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {

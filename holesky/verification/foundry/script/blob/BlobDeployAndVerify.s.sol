@@ -3,8 +3,8 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import "../../src/BlobVerifier.sol";
-import "../../src/IBlobVerifier.sol";
+import "../../src/contracts/BlobVerifier.sol";
+import "../../src/interfaces/IBlobVerifier.sol";
 
 
 contract BlobDeployAndVerify is Script {

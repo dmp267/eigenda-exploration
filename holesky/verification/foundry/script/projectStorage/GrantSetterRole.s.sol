@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import "../../src/IProjectStorageVerifier.sol";
+import "../../src/interfaces/IProjectStorageVerifier.sol";
 
 
 contract GrantSetterRole is Script {

@@ -4,8 +4,8 @@ pragma solidity ^0.8.24;
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
 
-import "../../src/ICarbonMonitoringVerifier.sol";
-import "../../src/CarbonMonitoringVerifier.sol";
+import "../../src/interfaces/ICarbonMonitoringVerifier.sol";
+import "../../src/contracts/CarbonMonitoringVerifier.sol";
 
 
 contract CMVDisperseExample is Script {

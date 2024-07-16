@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import "../../src/BlobVerifier.sol";
+import "../../src/contracts/BlobVerifier.sol";
 import "../../lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol";
 
 

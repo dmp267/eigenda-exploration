@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {EigenDARollupUtils, IEigenDAServiceManager, BN254} from "../lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol";
-import "../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
+import {EigenDARollupUtils, IEigenDAServiceManager, BN254} from "../../lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol";
+import "../../lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 
-import "./IBlobVerifier.sol";
+import "../interfaces/IBlobVerifier.sol";
 
 
 contract BlobVerifier is IBlobVerifier, AccessControl {

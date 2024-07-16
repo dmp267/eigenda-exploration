@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {EigenDARollupUtils, BN254} from "../lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol";
+import {EigenDARollupUtils, BN254} from "../../lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol";
 
 
 interface IBlobVerifier {

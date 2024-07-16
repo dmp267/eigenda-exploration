@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Chainlink, ChainlinkClient} from "../lib/chainlink/contracts/src/v0.8/ChainlinkClient.sol";
-import {ConfirmedOwner} from "../lib/chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
-import {LinkTokenInterface} from "../lib/chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+import {Chainlink, ChainlinkClient} from "../../lib/chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import {ConfirmedOwner} from "../../lib/chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
+import {LinkTokenInterface} from "../../lib/chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 
-import "./ICarbonMonitoringVerifier.sol";
-import "./IProjectStorageVerifier.sol";
+import "../interfaces/ICarbonMonitoringVerifier.sol";
+import "../interfaces/IProjectStorageVerifier.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
