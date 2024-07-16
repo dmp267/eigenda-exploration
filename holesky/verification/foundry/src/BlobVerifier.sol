@@ -56,7 +56,7 @@ contract BlobVerifier is IBlobVerifier, AccessControl {
         storageDetails[index - 1].blobHeader = _blobHeader;
         storageDetails[index - 1].blobVerificationProof = _blobVerificationProof;
     }
-        
+
 
     function verifyAttestation(
         string memory id

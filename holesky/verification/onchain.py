@@ -6,7 +6,7 @@ from web3 import Web3
 # CONSTANTS
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY', '0x00')
 WALLET_ADDRESS = os.environ.get('WALLET_ADDRESS', '0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1')
-VERIFIER_CONTRACT_ADDRESS = os.environ.get('VERIFIER_CONTRACT_ADDRESS', '0x1759D3920122C2397Ef17b475d3a3D75047f4a41')
+VERIFIER_CONTRACT_ADDRESS = os.environ.get('VERIFIER_CONTRACT_ADDRESS', '0x8032b4DBa3779B6836B4C69203bB1d3b4f92908B')
 RPC_URL = os.environ.get('RPC_URL', "https://ethereum-holesky-rpc.publicnode.com")
 ABI = json.load(open('verification/foundry/out/ProjectStorageVerifier.sol/ProjectStorageVerifier.json'))['abi']
 
@@ -27,11 +27,12 @@ def read_store_details(project_id: str):
     """
     contract = web3.eth.contract(address=VERIFIER_CONTRACT_ADDRESS, abi=ABI)
     full_detail = contract.functions.readProjectStorageProof(project_id).call()
-    project_store = full_detail[0]
+    # project_store = full_detail[0]
+    # exists = full_detail[0]
     storage_detail = full_detail[1]
     result = {
         "last_updated_timestamp": datetime.fromtimestamp(int(storage_detail[0])),
-        "last_updated_head_cid": project_store[1],
+        # "last_updated_head_cid": project_store[1],
         "blob_index": int(storage_detail[2][1]), 
         "batch_header_hash": storage_detail[1][2]
     }
@@ -39,7 +40,7 @@ def read_store_details(project_id: str):
     return result
 
 
-def store_on_chain(project_id: str, head_cid: str, result: str):
+def store_on_chain(project_id: str, result: str):
     """
     Store the storage details of a carbon monitoring/management project on the smart contract.
 
@@ -92,7 +93,6 @@ def store_on_chain(project_id: str, head_cid: str, result: str):
     nonce = web3.eth.get_transaction_count(WALLET_ADDRESS)
     upload_proof = contract.functions.uploadProjectStorageProof(
         project_id,
-        head_cid,
         blob_header_args, 
         blob_verification_proof_args).build_transaction({
             "chainId": chainId, 

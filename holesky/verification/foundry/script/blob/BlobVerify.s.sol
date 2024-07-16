@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import {EigenDARollupUtils, IEigenDAServiceManager, BN254, EigenDAHasher} from "../lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol";
+import {EigenDARollupUtils, IEigenDAServiceManager, BN254, EigenDAHasher} from "../../lib/eigenda/contracts/src/libraries/EigenDARollupUtils.sol";
 
 
 contract BlobVerify is Script {

@@ -74,9 +74,7 @@ def remove_empty_byte_from_padded_bytes(data):
         if end > data_size:
             end = data_size
             valid_len = end - start + i * put_size
-        
         valid_data[i * put_size: (i + 1) * put_size] = data[start: end]
-    
     return bytes(valid_data[: valid_len])
 
 
@@ -195,7 +193,7 @@ def transform_response(info):
     return proof_details
 
 
-def confirm_dispersal(id: str):
+def confirm_dispersal(id):
     """
     Confirm the dispersal of data to EigenDA.
 
@@ -205,7 +203,8 @@ def confirm_dispersal(id: str):
     Returns:
         dict: The transformed response from EigenDA.
     """
-
+    if isinstance(id, str):
+        id = id.encode()
     status_request = BlobStatusRequest(request_id=id)
     response = stub.GetBlobStatus(status_request)
     if response.status > 1:

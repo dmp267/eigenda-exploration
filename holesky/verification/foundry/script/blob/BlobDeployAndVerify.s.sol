@@ -3,20 +3,21 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import "../src/CarbonDataVerifier.sol";
+import "../../src/BlobVerifier.sol";
+import "../../src/IBlobVerifier.sol";
 
 
-contract CarbonDataDeployAndVerify is Script {
+contract BlobDeployAndVerify is Script {
+
+    string constant CID = "QmSoASxb8aNVGk3pNWpZvXEZTQKxjGeu9bvpYHuo5bP1VJ";
+
     function run() external {   
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address owner = vm.envAddress("WALLET_ADDRESS");
         vm.startBroadcast(deployerPrivateKey);
 
-        CarbonDataVerifier carbonDataVerifier = new CarbonDataVerifier(owner);
+        BlobVerifier blobVerifier = new BlobVerifier(owner);
 
-        string memory datasetName = "agb-quarterly";
-        // PLACEHOLDER
-        string memory lastUpdatedHeadCID = "";
         uint8[] memory quorumNumbers = new uint8[](2);
         quorumNumbers[0] = 0;
         quorumNumbers[1] = 1;
@@ -30,7 +31,7 @@ contract CarbonDataDeployAndVerify is Script {
         chunkLengths[0] = 1;
         chunkLengths[1] = 1;
 
-        BlobVerifier.ModifiedBlobHeader memory blobHeader = BlobVerifier.ModifiedBlobHeader({
+        BlobVerifier.ModifiedBlobHeader memory blobHeader = IBlobVerifier.ModifiedBlobHeader({
             commitment: BN254.G1Point(
                 17709391318787797331642701840504388161158975750185246830022501631687012546893,
                 5511369121926248436136882980770562785844228494401429094386919117721689758478
@@ -60,16 +61,9 @@ contract CarbonDataDeployAndVerify is Script {
             quorumIndices: hex"0001"
         });
 
-        carbonDataVerifier.updateDataset(
-            datasetName, 
-            lastUpdatedHeadCID, 
-            blobHeader, 
-            blobVerificationProof
-        );
-        carbonDataVerifier.verifyDataset(datasetName);
-        carbonDataVerifier.readDatasetStorageDetails(datasetName);
+        blobVerifier.setStorageDetail(blobHeader, blobVerificationProof, CID);
+        blobVerifier.verifyAttestation(CID);
 
         vm.stopBroadcast();
     }
-
 }

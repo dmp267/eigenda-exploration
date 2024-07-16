@@ -14,20 +14,20 @@ observationSource = """
                   data="$(jobRun.logData)"
                   topics="$(jobRun.logTopics)"]
     decode_cbor  [type="cborparse" data="$(decode_log.data)"]
-    query    [type=bridge name="confirm-carbon-data" requestData="{\\"id\\": $(jobSpec.externalJobID),\\"data\\":{\\"project_id\\":$(decode_cbor.projectID), \\"date\\":$(decode_cbor.date)}}"]
+    query    [type=bridge name="confirm-carbon-data" requestData="{\\"id\\": $(jobSpec.externalJobID),\\"data\\":{\\"project_id\\":$(decode_cbor.projectID), \\"dispersal_id\\":$(decode_cbor.dispersalRequestID)}}"]
 
-    status  [type=jsonparse path="status" data="$(query)"]
+    confirm  [type=jsonparse path="result,confirmed" data="$(query)"]
 
     // MWR API does NOT auto populate the requestID.
     encode_mwr [type="ethabiencode"
-                abi="(bytes32 _requestId)"
-                data="{\\"_requestId\\": $(decode_log.requestId)}"
+                abi="(bytes32 _requestId, bool _isConfirmed, string _projectID)"
+                data="{\\"_requestId\\": $(decode_log.requestId), \\"_isConfirmed\\": $(confirm), \\"_projectID\\": $(decode_cbor.projectID)}"
                 ]
     encode_tx  [type="ethabiencode"
                 abi="fulfillOracleRequest2(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes calldata data)"
                 data="{\\"requestId\\": $(decode_log.requestId), \\"payment\\":   $(decode_log.payment), \\"callbackAddress\\": $(decode_log.callbackAddr), \\"callbackFunctionId\\": $(decode_log.callbackFunctionId), \\"expiration\\": $(decode_log.cancelExpiration), \\"data\\": $(encode_mwr)}"
                 ]
-    submit_tx  [type="ethtx" from="[\\"0x01ffEeA6D026A4cc22b48006D666D2435fd13AA7\\"]" evmChainID="17000" to="0xCCda5E49Ff369640EdfA0fb58fb6AF165B53B8B5" data="$(encode_tx)" minConfirmations="2"]
+    submit_tx  [type="ethtx" from="[\\"0x608690f1780179a4A60F3E65d41BC15140fFA4f6\\"]" evmChainID="17000" to="0xCCda5E49Ff369640EdfA0fb58fb6AF165B53B8B5" data="$(encode_tx)" minConfirmations="2"]
 
-    decode_log -> decode_cbor -> query -> status -> encode_mwr -> encode_tx -> submit_tx    
+    decode_log -> decode_cbor -> query -> confirm -> encode_mwr -> encode_tx -> submit_tx
 """

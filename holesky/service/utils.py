@@ -32,10 +32,16 @@ def cleanup_file(file: str):
 
 
 def convert_to_datetime(date_str: str):
+    if isinstance(date_str, datetime):
+        return date_str
     try:
-        result = datetime.strptime(date_str, '%Y-%m-%d')
+        timestamp = int(date_str)
+        if timestamp > 1e10:
+            result = datetime.fromtimestamp(timestamp / 1e3)
+        else:
+            result = datetime.fromtimestamp(timestamp)
     except ValueError:
-        result = datetime.fromtimestamp(int(date_str))
+        result = datetime.strptime(date_str, '%Y-%m-%d')
     return result
 
 

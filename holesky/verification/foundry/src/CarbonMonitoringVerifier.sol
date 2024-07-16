@@ -13,8 +13,6 @@ import "./IProjectStorageVerifier.sol";
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
-// CURRENT DEPLOYED ADDRESS: 0x13b768dB9A4c5488CDC0697F6512718bF13eD3E2
-// Need to redeploy this
 contract CarbonMonitoringVerifier is
     ICarbonMonitoringVerifier,
     ChainlinkClient,
@@ -24,17 +22,16 @@ contract CarbonMonitoringVerifier is
 
     uint256 private constant ORACLE_PAYMENT = (0 * LINK_DIVISIBILITY) / 10; // 0.0 * 10**18
     address constant LINK_ADDRESS = 0xd27376e609bF32b506535efe2bf1303a74Eb5467; // <- Holesky
-    address constant OPERATOR_ADDRESS =
-        0xCCda5E49Ff369640EdfA0fb58fb6AF165B53B8B5; // <- Holesky
+    address constant OPERATOR_ADDRESS = 0xCCda5E49Ff369640EdfA0fb58fb6AF165B53B8B5; // <- Holesky
     bytes32 constant DISPERSAL_JOB_ID = "eaf2170545dc4793aadd19aa3dc82d66"; // <- Holesky
     bytes32 constant CONFIRM_JOB_ID = "8808538aeb2d4309a33af1edc9feb452"; // <- Holesky
     bytes32 constant DATA_JOB_ID = "fb8dbec0c82b45bda79f0edb5b693872"; // <- Holesky
 
-    address public projectVerifier = 0x1759D3920122C2397Ef17b475d3a3D75047f4a41;
-    mapping(bytes32 => DispersalRequest) public dispersalRequests;
-    mapping(bytes32 => bytes32) public jobRequestIDs;
-    mapping(bytes32 => CarbonDataQuery) public carbonDataQueries;
-    mapping(bytes32 => bool) public initializedProjects;
+    address public projectVerifier = 0x8032b4DBa3779B6836B4C69203bB1d3b4f92908B;
+    mapping(string => DispersalRequest) public dispersalRequests;
+    // mapping(bytes32 => CarbonDataQuery) public carbonDataQueries;
+
+    mapping(string => uint8) public projectStates; //0: not initialized, 1: dispersal requested, 2: data confirmed, 3: data expired
     mapping(string => string[]) public userProjects;
 
 
@@ -42,12 +39,22 @@ contract CarbonMonitoringVerifier is
         _setChainlinkToken(LINK_ADDRESS);
     }
 
-
+    /**
+     * 
+     * @param _projectVerifier address of ProjectStorageVerifier contract
+     */
     function setProjectVerifier(address _projectVerifier) public onlyOwner {
         projectVerifier = _projectVerifier;
     }
 
-
+    /**
+     * 
+     * @param _start timestamp in 's' of start of desired range
+     * @param _end timestamp in 's' of end of desired range
+     * @param _projectName user-defined name of project, must not conflict with other projects by the same user
+     * @param _userID unique ID of user
+     * @param _cid CID of uploaded KML file on IPFS
+     */
     function requestDisperseData(
         uint _start,
         uint _end,
@@ -60,107 +67,126 @@ contract CarbonMonitoringVerifier is
             this.fulfillDisperseData.selector
         );
 
-        bytes32 _projectID = keccak256(
-            abi.encodePacked(_userID, ":", _projectName)
-        );
-        req._addBytes("projectID", abi.encodePacked(_projectID));
+        string memory _projectID = string(abi.encodePacked(_projectName, ":", _userID));
+        req._add("projectID", _projectID);
         req._add("cid", _cid);
         req._addUint("start", _start);
         req._addUint("end", _end);
 
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
-        jobRequestIDs[req.id] = _projectID;
-        if (!initializedProjects[_projectID]) {
+        if (projectStates[_projectID] == 0) {
             userProjects[_userID].push(_projectName);
-            initializedProjects[_projectID] = true;
-            dispersalRequests[_projectID].cid = _cid;
-        }
+            projectStates[_projectID] = 1;
+        } 
+        projectStates[_projectID] = 1;
+        dispersalRequests[_projectID].cid = _cid;
     }
 
-
+    /**
+     * 
+     * @param _requestId ID for Chainlink job request
+     * @param _dispersalID ID for EigenDA dispersal request
+     * @param _lastUpdatedHeadCID most recent IPFS head CID for associated datasets
+     */
     function fulfillDisperseData(
         bytes32 _requestId,
-        string memory _dispersalRequestID,
+        string memory _projectID,
+        string memory _dispersalID,
         string memory _lastUpdatedHeadCID
     ) public recordChainlinkFulfillment(_requestId) {
-        bytes32 _projectID = jobRequestIDs[_requestId];
+        emit RequestDisperseDataFulfilled(
+            _requestId,
+            _dispersalID,
+            _lastUpdatedHeadCID
+        );
+        // string memory _projectID = jobRequestIDs[_requestId];
         dispersalRequests[_projectID].expectedTimeofDispersal =
             block.timestamp +
-            10 minutes;
-        dispersalRequests[_projectID].dispersalRequestID = _dispersalRequestID;
+            1 minutes;
+        dispersalRequests[_projectID].dispersalRequestID = _dispersalID;
         dispersalRequests[_projectID].lastUpdatedHeadCID = _lastUpdatedHeadCID;
     }
 
-
-    function requestConfirmData(bytes32 _projectID) public onlyOwner {
+    /**
+     * 
+     * @param _projectID unique ID of project
+     */
+    function requestConfirmData(string memory _projectID) public onlyOwner {
         Chainlink.Request memory req = _buildOperatorRequest(
             CONFIRM_JOB_ID,
             this.fulfillConfirmData.selector
         );
         require(
-            dispersalRequests[_projectID].expectedTimeofDispersal >
+            dispersalRequests[_projectID].expectedTimeofDispersal <
                 block.timestamp,
             "please wait"
         );
-        req._addBytes("projectID", abi.encodePacked(_projectID));
+        req._add("projectID", _projectID);
         req._add(
             "dispersalRequestID",
             dispersalRequests[_projectID].dispersalRequestID
         );
         _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
-        jobRequestIDs[req.id] = _projectID;
     }
 
-
+    /**
+     * 
+     * @param _requestId ID of Chainlink job request
+     */
     function fulfillConfirmData(
-        bytes32 _requestId
+        bytes32 _requestId,
+        bool _isConfirmed,
+        string memory _projectID
     ) public recordChainlinkFulfillment(_requestId) {
         // optionally call the verification function on fulfillment
-        // _projectVerifier.verifyProjectStorageProof(jobRequestIDs[_requestId]);
+        if (_isConfirmed) {
+            IProjectStorageVerifier(projectVerifier).verifyProjectStorageProof(_projectID);
+        }
         emit RequestConfirmDataFulfilled(
             _requestId,
-            jobRequestIDs[_requestId],
+            _isConfirmed,
+            _projectID,
             projectVerifier
         );
     }
 
 
-    function requestRetrieveData(
-        uint _date,
-        bytes32 _projectID
-    ) public onlyOwner {
-        Chainlink.Request memory req = _buildOperatorRequest(
-            DATA_JOB_ID,
-            this.fulfillRetrieveData.selector
-        );
-        req._addBytes("projectID", abi.encodePacked(_projectID));
-        req._addUint("date", _date);
-        _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
-        jobRequestIDs[req.id] = _projectID;
-    }
+    // function requestRetrieveData(
+    //     uint _date,
+    //     bytes32 _projectID
+    // ) public onlyOwner {
+    //     Chainlink.Request memory req = _buildOperatorRequest(
+    //         DATA_JOB_ID,
+    //         this.fulfillRetrieveData.selector
+    //     );
+    //     req._addBytes("projectID", abi.encodePacked(_projectID));
+    //     req._addUint("date", _date);
+    //     _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
+    //     jobRequestIDs[req.id] = _projectID;
+    // }
 
 
-    function fulfillRetrieveData(
-        bytes32 _requestId,
-        uint256 _agbData,
-        uint256 _defData,
-        uint256 _seqData,
-        string calldata _agbUnit,
-        string calldata _defUnit,
-        string calldata _seqUnit
-    ) public recordChainlinkFulfillment(_requestId) {
-        emit RequestRetrieveDataFulfilled(
-            _requestId,
-            _agbUnit,
-            _defUnit,
-            _seqUnit
-        );
-        carbonDataQueries[jobRequestIDs[_requestId]] = CarbonDataQuery({
-            agb: _agbData,
-            deforestation: _defData,
-            sequestration: _seqData
-        });
-    }
+    // function fulfillRetrieveData(
+    //     bytes32 _requestId,
+    //     uint256 _agbData,
+    //     uint256 _defData,
+    //     uint256 _seqData,
+    //     string calldata _agbUnit,
+    //     string calldata _defUnit,
+    //     string calldata _seqUnit
+    // ) public recordChainlinkFulfillment(_requestId) {
+    //     emit RequestRetrieveDataFulfilled(
+    //         _requestId,
+    //         _agbUnit,
+    //         _defUnit,
+    //         _seqUnit
+    //     );
+    //     carbonDataQueries[jobRequestIDs[_requestId]] = CarbonDataQuery({
+    //         agb: _agbData,
+    //         deforestation: _defData,
+    //         sequestration: _seqData
+    //     });
+    // }
 
 
     function getChainlinkToken() public view returns (address) {
@@ -206,3 +232,4 @@ contract CarbonMonitoringVerifier is
     //     }
     // }
 }
+

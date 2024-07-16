@@ -7,15 +7,16 @@ import {IBlobVerifier, EigenDARollupUtils} from "./IBlobVerifier.sol";
 interface IProjectStorageVerifier is IBlobVerifier {
 
     // STRUCTS
-    struct ProjectStore {
-        bool exists;
-        string lastUpdatedHeadCID;
-        // coords?
-    }
+    // struct ProjectStore {
+    //     bool exists;
+    //     string lastUpdatedHeadCID;
+    //     // coords?
+    // }
 
 
     struct FullStore {
-        ProjectStore projectStore;
+        // mapping() projectStore;
+        bool exists;
         IBlobVerifier.StorageDetail storageDetail;
     }
 
@@ -23,13 +24,13 @@ interface IProjectStorageVerifier is IBlobVerifier {
     // FUNCTIONS
     function uploadProjectStorageProof(
         string calldata projectID,
-        string calldata lastUpdatedHeadCID,
+        // string calldata lastUpdatedHeadCID,
         IBlobVerifier.ModifiedBlobHeader calldata _blobHeader,
         EigenDARollupUtils.BlobVerificationProof calldata _blobVerificationProof
     ) external;
 
 
-    function verifyProjectStorageProof(string calldata projectID) 
+    function verifyProjectStorageProof(string memory projectID) 
         external;
 
 

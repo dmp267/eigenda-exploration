@@ -140,10 +140,10 @@ def start_store_data(data: str):
     return result
 
 
-def finish_store_data(project_id: str, head_cid: str, dispersal_id: str):
+def finish_store_data(project_id: str, dispersal_id: str):
     result = confirm_dispersal(dispersal_id)
     print(f'Confirmation: {result}')
-    receipt = store_on_chain(project_id, head_cid, result)
+    receipt = store_on_chain(project_id, result)
     verify_on_chain(project_id)
     print(f'On-chain storage receipt: {receipt}')
 

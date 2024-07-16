@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "./BlobVerifier.sol";
 import "./IProjectStorageVerifier.sol";
 
-// CURRENT DEPLOYED ADDRESS: 0x1759D3920122C2397Ef17b475d3a3D75047f4a41
+// CURRENT DEPLOYED ADDRESS: 0x8032b4DBa3779B6836B4C69203bB1d3b4f92908B
 contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
 
     // return type for readProjectStorageDetails
@@ -13,7 +13,7 @@ contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
     //     StorageDetail storageDetail;
     // }
 
-    mapping(string => ProjectStore) public projects;
+    mapping(string => bool) public projects;
 
 
     constructor(address owner) BlobVerifier(owner) {}
@@ -21,7 +21,7 @@ contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
 
     function uploadProjectStorageProof(
         string calldata projectID,
-        string calldata lastUpdatedHeadCID,
+        // string calldata lastUpdatedHeadCID,
         ModifiedBlobHeader calldata _blobHeader,
         EigenDARollupUtils.BlobVerificationProof calldata _blobVerificationProof
     ) external onlyRole(SETTER_ROLE) {
@@ -35,18 +35,19 @@ contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
             projectID
         );
 
-        projects[projectID] = ProjectStore({
-            exists: true,
-            lastUpdatedHeadCID: lastUpdatedHeadCID
-        });
+        // projects[projectID] = ProjectStore({
+        //     exists: true,
+        //     lastUpdatedHeadCID: lastUpdatedHeadCID
+        // });
+        projects[projectID] = true;
     }
 
 
-    function verifyProjectStorageProof(string calldata projectID) 
+    function verifyProjectStorageProof(string memory projectID) 
         external 
         view
     {
-        require(projects[projectID].exists, "ProjectStorageVerifier: invalid project");
+        require(projects[projectID], "ProjectStorageVerifier: invalid project");
         verifyAttestation(projectID);
     }
 
@@ -56,8 +57,12 @@ contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
         view 
         returns (FullStore memory) 
     {
+        // return FullStore({
+        //     projectStore: projects[projectID],
+        //     storageDetail: readStorageDetail(projectID)
+        // });
         return FullStore({
-            projectStore: projects[projectID],
+            exists: projects[projectID],
             storageDetail: readStorageDetail(projectID)
         });
     }
