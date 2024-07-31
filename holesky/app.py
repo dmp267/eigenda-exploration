@@ -20,16 +20,26 @@ def disperse():
 
         curl -H "Content-Type: application/json" -d '{
             "project_id": "holesky-852-QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb", 
-            "file_cid": "QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb", 
-            "file_type": "kml", 
+            "cid": "QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb", 
+            "ftype": "kml", 
             "start": "2017-12-31", 
             "end": "2023-12-31"
         }' http://127.0.0.1:5000/disperse | jq
     """
-    data = request.get_json()['data']
+    data = request.get_json()
+    if 'data' in data:
+        data = data['data']
     print('disperse data:', data)
+    project_id = data.get('project_id', '')
+    if project_id == '':
+        project_name = data.get('project_name', '')
+        project_user = data.get('user', '')
+        project_id = f'{project_user}:{project_name}'
+    if isinstance(project_id, bytes):
+        project_id = project_id.decode()
+    print(f'project_id: {project_id}')
     if app.config["DEV"]:
-        dispersal_request_id = 'def2c0c40f6379e8e956f30e10f0a033a643eddf7a4fa6e1ff4ff3eba819e1e8-313732313135363538313332363533353430312f302f33332f312f33332fe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+        dispersal_request_id = '173342183bb06fa6fe2576b534b3f8c2156713f51c4e465fe9c1efcc86923dd7-313732323434313032323236303433383038372f302f33332f312f33332fe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         head_cid = 'bafyreifuh56spzd6rpn3yldxcrfibcjducrjm7ikmbf62s6c3txfpm366m'
         result = {
             "result": {
@@ -39,10 +49,6 @@ def disperse():
         }
         return jsonify(result)
     else:
-        project_id = data.get('project_id', '')
-        if isinstance(project_id, bytes):
-            print(f'project_id bytes: {project_id}')
-            project_id = project_id.decode()
         cid = data.get('cid', 'QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb')
         ftype = data.get('ftype', 'kml')
         start = convert_to_datetime(data.get('start', '2010-01-01'))
@@ -63,10 +69,13 @@ def disperse():
         try:
             polygon_kwargs, spatial_agg_kwargs, temporal_agg_kwargs = parse_file(file_path)
             query_result = query_data(polygon_kwargs, spatial_agg_kwargs, temporal_agg_kwargs, start, end)
+            # project_name = project_id[project_id.find(':')+1:]
+            # print(f'project_name: {project_name}')
             dispersal_id = start_store_data(query_result)
             head_cid = query_result['agb']['head_cid']
             result = {
                 "result": {
+                    # "project_id": project_id,
                     "dispersal_id": dispersal_id.decode(),
                     "head_cid": head_cid
                 }

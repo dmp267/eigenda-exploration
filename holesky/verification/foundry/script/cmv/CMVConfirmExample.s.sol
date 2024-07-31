@@ -1,24 +1,46 @@
 // // // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
 
+import {Strings} from "../../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
+
+// import "../../src/interfaces/ICarbonMonitoringVerifier.sol";
+// import "../../src/contracts/CarbonMonitoringVerifier.sol";
 
 interface ICMV {
 
-    struct DispersalRequest {
+    struct UserProject {
+        bool isSubscribed;
+        uint8 projectState;
+        uint start;
+        uint end;
         uint expectedTimeofDispersal;
+        uint expectedTimeofExpiry;
         string cid;
         string dispersalRequestID;
         string lastUpdatedHeadCID;
     }
-    
-    function dispersalRequests(
-        string calldata _projectID
-    ) external view returns (uint expectedTimeofDispersal, string memory cid, string memory dispersalRequestID, string memory lastUpdatedHeadCID);
 
-    function requestConfirmData(string memory _projectID) external;
+
+    struct UserDetail {
+        bool whitelisted;
+        UserProject[] userProjects;
+    }
+    
+
+    function userDetails(
+        address _userAddress
+    ) external view returns (UserDetail memory userDetail);
+
+
+    function projectIndex(
+        string memory _projectID
+    ) external view returns (uint256);
+
+
+    function requestConfirmData(address _user, string memory _projectID) external;
 }
 
 
@@ -28,19 +50,24 @@ contract CMVConfirmExample is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        address cmv = 0x441F674463aa613C57b39C7eE7Ad343F3C1886a8;
+        address cmv = 0x526E869A13Bc607C9cE057Db586A91d278A5D221;
         string memory projectName = "852-monitor";
-        string memory userID = "carbon@verifier.com";
-        string memory projectID = string(abi.encodePacked(projectName, ":", userID));
+        // string memory userID = "carbon@verifier.com";
+        address userAddress = vm.envAddress("WALLET_ADDRESS");
+        // string memory userID = Strings.toHexString(uint256(uint160(userAddress)), 20);
+        // string memory projectID = string(abi.encodePacked(userID, ":", projectName));
 
         ICMV carbonMonitoringVerifier = ICMV(cmv);
-        (uint expectedTimeofDispersal, string memory cid, string memory dispersalRequestID, string memory lastUpdatedHeadCID) = carbonMonitoringVerifier.dispersalRequests(projectID);
-        console.log("Source file CID: ", cid);
-        console.log("Dispersal Request ETA: ", expectedTimeofDispersal);
-        console.log("Dispersal Request ID: ", dispersalRequestID);
-        console.log("Last Updated Head CID: ", lastUpdatedHeadCID);
+        // (uint expectedTimeofDispersal, string memory cid, string memory dispersalRequestID, string memory lastUpdatedHeadCID) = carbonMonitoringVerifier.dispersalRequests(projectID);
+        // ICMV.UserDetail memory userDetail = carbonMonitoringVerifier.userDetails(userAddress);
+        // uint index = carbonMonitoringVerifier.projectIndex(projectID);
+        // ICMV.UserProject memory userProject = userDetail.userProjects[index];
+        // console.log("Source file CID: ", userProject.cid);
+        // console.log("Dispersal Request ETA: ", userProject.expectedTimeofDispersal);
+        // console.log("Dispersal Request ID: ", userProject.dispersalRequestID);
+        // console.log("Last Updated Head CID: ", userProject.lastUpdatedHeadCID);
 
-        carbonMonitoringVerifier.requestConfirmData(projectID);
+        carbonMonitoringVerifier.requestConfirmData(userAddress, projectName);
         vm.stopBroadcast();
     }
 }

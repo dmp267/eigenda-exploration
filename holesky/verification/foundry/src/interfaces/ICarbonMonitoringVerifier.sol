@@ -17,20 +17,38 @@ interface ICarbonMonitoringVerifier {
         address indexed projectVerifier
     );
 
-    event RequestRetrieveDataFulfilled(
-        bytes32 requestId,
-        string indexed agbUnit,
-        string indexed deforestationUnit,
-        string indexed sequestrationUnit
-    );
+    // event RequestRetrieveDataFulfilled(
+    //     bytes32 requestId,
+    //     string indexed agbUnit,
+    //     string indexed deforestationUnit,
+    //     string indexed sequestrationUnit
+    // );
 
     // STRUCTS
-    struct DispersalRequest {
+    struct UserProject {
+        bool isSubscribed;
+        uint8 projectState;
+        uint start;
+        uint end;
         uint expectedTimeofDispersal;
+        uint expectedTimeofExpiry;
         string cid;
         string dispersalRequestID;
         string lastUpdatedHeadCID;
     }
+
+
+    struct UserDetail {
+        bool whitelisted;
+        UserProject[] userProjects;
+    }
+
+
+    struct JobRequest {
+        address user;
+        string projectID;
+    }
+
 
     // struct CarbonDataQuery {
     //     uint agb;
@@ -42,27 +60,32 @@ interface ICarbonMonitoringVerifier {
     function setProjectVerifier(address _projectVerifier) external;
 
 
+    function whitelistUser(address _userID) external;
+
+
+    function updateProjectState(address _user, string memory _projectName) external;
+
+
     function requestDisperseData(
+        bool _isSubscription,
         uint _start,
         uint _end,
-        string calldata _projectName,
-        string calldata userID, 
-        string calldata _cid
+        string memory _projectID,
+        string memory _cid
     ) external;
 
 
     function fulfillDisperseData(
         bytes32 _requestId, 
-        string memory _projectID,
-        string memory _dispersalRequestID,
+        string memory _dispersalID,
         string memory _lastUpdatedHeadCID
     ) external;
 
 
-    function requestConfirmData(string memory _projectID) external;
+    function requestConfirmData(address _user, string memory _projectName) external;
 
 
-    function fulfillConfirmData(bytes32 _requestId, bool _isConfirmed, string memory _projectID) external;
+    function fulfillConfirmData(bytes32 _requestId, bool _isConfirmed) external;
 
 
     // function requestRetrieveData(uint _date, bytes32 _projectID) external;

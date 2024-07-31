@@ -21,8 +21,8 @@ observationSource = """
 
     // MWR API does NOT auto populate the requestID.
     encode_mwr [type="ethabiencode"
-                abi="(bytes32 _requestId, string _projectID, string _dispersalID, string _lastUpdatedHeadCID)"
-                data="{\\"_requestId\\": $(decode_log.requestId), \\"_projectID\\": $(decode_cbor.projectID), \\"_dispersalID\\": $(dispersal_id), \\"_lastUpdatedHeadCID\\": $(head_cid)}"
+                abi="(bytes32 _requestId, string _dispersalID, string _lastUpdatedHeadCID)"
+                data="{\\"_requestId\\": $(decode_log.requestId), \\"_dispersalID\\": $(dispersal_id), \\"_lastUpdatedHeadCID\\": $(head_cid)}"
                 ]
     encode_tx  [type="ethabiencode"
                 abi="fulfillOracleRequest2(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes calldata data)"
