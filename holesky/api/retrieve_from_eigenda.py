@@ -12,7 +12,6 @@ def handle_retrieve_data():
     request_data = request.get_json()
     project_id = request_data.get('project_id', '')
     if isinstance(project_id, bytes):
-        print(f'project_id bytes: {project_id}')
         project_id = project_id.decode()
     if project_id == '':
         return jsonify({"error": "project_id not provided"}), 400

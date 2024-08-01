@@ -118,7 +118,6 @@ def read_store_details(project_id: str):
         "blob_index": int(storage_detail[2][1]), 
         "batch_header_hash": storage_detail[1][2]
     }
-    print(result)
     return result
 
 
@@ -134,11 +133,10 @@ def verify_on_chain(project_id: str):
     """
     contract = web3.eth.contract(address=VERIFIER_CONTRACT_ADDRESS, abi=ABI)
     verification = contract.functions.verifyProjectStorageProof(project_id).call()
-    print(f'Verification for {project_id} complete')
     return verification
 
 
-def retrieve_data(id: str, date: datetime = None):
+def retrieve_data(id: str):
     verify_on_chain(id)
     store_details = read_store_details(id)
     data = retrieve_from_eigenda(store_details['batch_header_hash'], store_details['blob_index'])
