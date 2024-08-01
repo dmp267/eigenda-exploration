@@ -44,6 +44,14 @@ contract CarbonMonitoringVerifier is
         _setChainlinkToken(LINK_ADDRESS);
     }
 
+    /**
+     * Getter for userDetails mapping
+     * 
+     * @param _user address of user
+     */
+    function getUserDetail(address _user) external view returns (UserDetail memory) {
+        return userDetails[_user];
+    }
 
     /**
      * Add a user address to the whitelist

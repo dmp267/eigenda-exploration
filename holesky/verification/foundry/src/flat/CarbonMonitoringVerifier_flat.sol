@@ -2737,6 +2737,8 @@ interface ICarbonMonitoringVerifier {
     // }
 
     // FUNCTIONS
+    function getUserDetail(address _user) external view returns (UserDetail memory);
+
     function setProjectVerifier(address _projectVerifier) external;
 
     function whitelistUser(address _user) external;
@@ -7333,6 +7335,15 @@ contract CarbonMonitoringVerifier is
     }
 
     /**
+     * Getter for userDetails mapping
+     * 
+     * @param _user address of user
+     */
+    function getUserDetail(address _user) external view returns (UserDetail memory) {
+        return userDetails[_user];
+    }
+
+    /**
      * Add a user address to the whitelist
      * 
      * @param _user address of user
@@ -7375,9 +7386,6 @@ contract CarbonMonitoringVerifier is
             if (project.isSubscribed) {
                 requestRedispersal(_user, _projectName);
             }
-            if (project.isSubscribed) {
-                requestRedispersal(_user, _projectName);
-            }
         } else {
             if (project.expectedTimeofDispersal < block.timestamp && project.projectState == 1) {
                 requestConfirmData(_user, _projectName);
@@ -7408,8 +7416,8 @@ contract CarbonMonitoringVerifier is
             _user,
             project.start,
             project.end,
-            _projectName,
-            project.lastUpdatedHeadCID
+            projectID,
+            project.cid
         );
     }
 

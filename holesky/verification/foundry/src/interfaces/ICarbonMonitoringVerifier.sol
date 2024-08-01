@@ -57,6 +57,9 @@ interface ICarbonMonitoringVerifier {
     // }
 
     // FUNCTIONS
+    function getUserDetail(address _user) external view returns (UserDetail memory);
+
+
     function setProjectVerifier(address _projectVerifier) external;
 
 
