@@ -78,21 +78,21 @@ def remove_empty_byte_from_padded_bytes(data):
     return bytes(valid_data[: valid_len])
 
 
-def find_kzgpad():
-    """
-    Find the path to the kzgpad binary.
+# def find_kzgpad():
+#     """
+#     Find the path to the kzgpad binary.
 
-    Returns:
-        str: The path to the kzgpad binary.
-    """
-    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-    parent = os.path.dirname(repo_root)
-    grandparent = os.path.dirname(parent)
-    if 'eigenda' in os.listdir(parent):
-        path = os.path.join(parent, 'eigenda/tools/kzgpad/bin/kzgpad')
-    else:
-        path = os.path.join(grandparent, 'Layr-Labs/eigenda/tools/kzgpad/bin/kzgpad')
-    return path
+#     Returns:
+#         str: The path to the kzgpad binary.
+#     """
+#     repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+#     parent = os.path.dirname(repo_root)
+#     grandparent = os.path.dirname(parent)
+#     if 'eigenda' in os.listdir(parent):
+#         path = os.path.join(parent, 'eigenda/tools/kzgpad/bin/kzgpad')
+#     else:
+#         path = os.path.join(grandparent, 'Layr-Labs/eigenda/tools/kzgpad/bin/kzgpad')
+#     return path
 
 
 def encode_for_dispersal(data: bytes):
@@ -106,10 +106,11 @@ def encode_for_dispersal(data: bytes):
     Returns:
         bytes: The encoded data.
     """
-    path = find_kzgpad()
-    result = subprocess.run([path, "-e", data], capture_output=True, text=True).stdout.strip()
-    result_bytes = bytes(result, "utf-8")
-    valid_bytes = convert_by_padding_empty_byte(result_bytes)
+    # path = find_kzgpad()
+    # result = subprocess.run([path, "-e", data], capture_output=True, text=True).stdout.strip()
+    # result_bytes = bytes(result, "utf-8")
+    # valid_bytes = convert_by_padding_empty_byte(result_bytes)
+    valid_bytes = convert_by_padding_empty_byte(data)
     return valid_bytes
 
 
@@ -126,9 +127,10 @@ def decode_retrieval(data: bytes):
         str: The decoded data.
     """
     reconverted_data = remove_empty_byte_from_padded_bytes(data)
-    reconverted_str = reconverted_data.decode("utf-8")
-    path = find_kzgpad()
-    result = subprocess.run([path, "-d", "-"], input=reconverted_str, capture_output=True, text=True).stdout.strip()
+    # reconverted_str = reconverted_data.decode("utf-8")
+    result = reconverted_data.decode("utf-8")
+    # path = find_kzgpad()
+    # result = subprocess.run([path, "-d", "-"], input=reconverted_str, capture_output=True, text=True).stdout.strip()
     return result
     
 
@@ -211,7 +213,7 @@ def confirm_dispersal(id):
         # print(f'Dispersal confirmed: {response}')
         return(transform_response(response.info))
     print('Dispersal not confirmed')
-    raise Exception("Dispersal not confirmed")
+    raise Exception("Dispersal not confirmed, please wait")
 
 
 def disperse_to_eigenda(data: bytes):

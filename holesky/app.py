@@ -2,11 +2,11 @@ from flask import request, Flask, jsonify
 from werkzeug.utils import secure_filename
 
 from service.core import query_data, start_store_data, finish_store_data, retrieve_data
-from service.utils import allowed_file, download_file, parse_file, cleanup_file, convert_to_datetime, filter_to_date
+from service.utils import allowed_file, download_file, parse_file, cleanup_file, convert_to_datetime#, filter_to_date
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "data/uploads"
-app.config["DEV"] = True
+app.config["DEV"] = False
 # mock data availability storage for demo because of finalization delay
 
 
@@ -19,11 +19,10 @@ def disperse():
         example request:
 
         curl -H "Content-Type: application/json" -d '{
-            "project_id": "holesky-852-QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb", 
+            "project_id": "0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1:QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb", 
             "cid": "QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb", 
-            "ftype": "kml", 
-            "start": "2017-12-31", 
-            "end": "2023-12-31"
+            "start": "1514696400", 
+            "end": "1703998800"
         }' http://127.0.0.1:5000/disperse | jq
     """
     data = request.get_json()
@@ -94,9 +93,11 @@ def confirm():
 
         example request:
 
-        curl -H "Content-Type: application/json" -d '{"project_id": "holesky-852-QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb", "dispersal_id": "173342183bb06fa6fe2576b534b3f8c2156713f51c4e465fe9c1efcc86923dd7-313732313037303634323832363139313739392f312f33332f302f33332fe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}' http://127.0.0.1:5000/confirm | jq
+        curl -H "Content-Type: application/json" -d '{"data": {"project_id": "0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1:QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb", "dispersal_id": "4ad3951235de48625212d999085284c13f3bc72070d7b891a68579e572bebe0f-313732323535313337343431323630333838312f302f33332f312f33332fe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}' http://127.0.0.1:5000/confirm | jq
     """
-    data = request.get_json()['data']
+    data = request.get_json()
+    if 'data' in data:
+        data = data['data']
     print('confirm data:', data)
     project_id = data.get('project_id', '')
     if isinstance(project_id, bytes):
@@ -124,18 +125,21 @@ def retrieve():
     
         example request:
 
-        curl -H "Content-Type: application/json" -d '{"project_id": "holesky-852-QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb"}' http://127.0.0.1:5000/retrieve | jq
+        curl -H "Content-Type: application/json" -d '{"project_id": "0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1:QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb"}' http://127.0.0.1:5000/retrieve | jq
     """
-    data = request.get_json()['data']
-    print(f'Retrieving data for project {data.get("project_id", "")}')
-    date = data.get('date', None)
+    # data = request.get_json()['data']
+    data = request.get_json()
+    if 'data' in data:
+        data = data['data']
+    # print(f'Retrieving data for project {data.get("project_id", "")}')
+    # date = data.get('date', None)
     project_id = data.get('project_id', '852-holesky-QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLk')
     if isinstance(project_id, bytes):
         print(f'project_id bytes: {project_id}')
         project_id = project_id.decode()
     result = retrieve_data(project_id)
-    if date is not None:
-        result = filter_to_date(result, convert_to_datetime(date))
+    # if date is not None:
+    #     result = filter_to_date(result, convert_to_datetime(date))
     return jsonify({"result": result})
     # except Exception as e:
     #     return jsonify({'error': str(e)}), 400

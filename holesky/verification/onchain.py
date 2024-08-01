@@ -53,7 +53,7 @@ def store_on_chain(project_id: str, result: str):
         dict: The receipt of the transaction.
     """
     contract = web3.eth.contract(address=VERIFIER_CONTRACT_ADDRESS, abi=ABI)
-
+    print(project_id, result)
     params_list = result['blob_header']['blob_quorum_params']
     quorum_numbers = []
     adversary_threshold_percentages = []
@@ -91,6 +91,8 @@ def store_on_chain(project_id: str, result: str):
                                     bytes.fromhex(result['blob_verification_proof']['quorum_indexes'])]
 
     nonce = web3.eth.get_transaction_count(WALLET_ADDRESS)
+
+    print('Uploading proof')
     upload_proof = contract.functions.uploadProjectStorageProof(
         project_id,
         blob_header_args, 
@@ -100,6 +102,7 @@ def store_on_chain(project_id: str, result: str):
             "nonce": nonce})
     
     signed_txn = web3.eth.account.sign_transaction(upload_proof, private_key=PRIVATE_KEY)
+    print('Sending proof')
     send_txn = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
     receipt = web3.eth.wait_for_transaction_receipt(send_txn)
     return receipt

@@ -51,17 +51,6 @@ def remove_empty_byte_from_padded_bytes(data):
     return bytes(valid_data[: valid_len])
 
 
-def find_kzgpad():
-    """
-    Find the path to the kzgpad binary.
-
-    Returns:
-        str: The path to the kzgpad binary.
-    """
-    api_dir = os.path.dirname(os.path.realpath(__file__))
-    path = os.path.join(api_dir, 'kzgpad/bin/kzgpad')
-    return path
-
 
 def decode_retrieval(data: bytes):
     """
@@ -76,9 +65,7 @@ def decode_retrieval(data: bytes):
         str: The decoded data.
     """
     reconverted_data = remove_empty_byte_from_padded_bytes(data)
-    reconverted_str = reconverted_data.decode("utf-8")
-    path = find_kzgpad()
-    result = subprocess.run([path, "-d", "-"], input=reconverted_str, capture_output=True, text=True).stdout.strip()
+    result = reconverted_data.decode("utf-8")
     return result
 
 
