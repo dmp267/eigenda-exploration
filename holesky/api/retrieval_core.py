@@ -58,13 +58,8 @@ def find_kzgpad():
     Returns:
         str: The path to the kzgpad binary.
     """
-    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-    parent = os.path.dirname(repo_root)
-    grandparent = os.path.dirname(parent)
-    if 'eigenda' in os.listdir(parent):
-        path = os.path.join(parent, 'eigenda/tools/kzgpad/bin/kzgpad')
-    else:
-        path = os.path.join(grandparent, 'Layr-Labs/eigenda/tools/kzgpad/bin/kzgpad')
+    api_dir = os.path.dirname(os.path.realpath(__file__))
+    path = os.path.join(api_dir, 'kzgpad/bin/kzgpad')
     return path
 
 
