@@ -49,4 +49,4 @@ export default async function handler(req, res) {
     console.error('Error uploading file to IPFS:', error);
     res.status(500).json({ error: 'Failed to upload file to IPFS' });
   }
-}
+};
