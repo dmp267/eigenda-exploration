@@ -60,17 +60,20 @@ interface ICarbonMonitoringVerifier {
     function setProjectVerifier(address _projectVerifier) external;
 
 
-    function whitelistUser(address _userID) external;
+    function whitelistUser(address _user) external;
 
 
     function updateProjectState(address _user, string memory _projectName) external;
 
 
-    function requestDisperseData(
+    function requestRedispersal(address _user, string memory _projectName) external;
+
+
+    function requestInitialDispersal(
         bool _isSubscription,
         uint _start,
         uint _end,
-        string memory _projectID,
+        string memory _projectName,
         string memory _cid
     ) external;
 

@@ -44,21 +44,25 @@ contract CarbonMonitoringVerifier is
         _setChainlinkToken(LINK_ADDRESS);
     }
 
+
     /**
+     * Add a user address to the whitelist
      * 
-     * @param _projectVerifier address of ProjectStorageVerifier contract
+     * @param _user address of user
      */
-    function setProjectVerifier(address _projectVerifier) external onlyOwner {
-        projectVerifier = _projectVerifier;
+    function whitelistUser(address _user) external onlyOwner {
+        require(!userDetails[_user].whitelisted, "user already whitelisted");
+        userDetails[_user].whitelisted = true;
     }
 
 
-    function whitelistUser(address _userID) external onlyOwner {
-        require(!userDetails[_userID].whitelisted, "user already whitelisted");
-        userDetails[_userID].whitelisted = true;
-    }
-
-
+    /**
+     * Construct a projectID from a user address and project name
+     * 
+     * @param _user address of user
+     * @param _projectName user-defined name of project
+     * @return string memory projectID
+     */
     function buildProjectID(
         address _user, 
         string memory _projectName
@@ -66,7 +70,12 @@ contract CarbonMonitoringVerifier is
         return string(abi.encodePacked(Strings.toHexString(uint256(uint160(_user)), 20), ":", _projectName));
     }
 
-
+    /**
+     * Update the state of a project
+     * 
+     * @param _user address of user
+     * @param _projectName user-defined name of project
+     */
     function updateProjectState(
         address _user, 
         string memory _projectName
@@ -78,15 +87,7 @@ contract CarbonMonitoringVerifier is
         if (project.expectedTimeofExpiry < block.timestamp) {
             userDetails[_user].userProjects[index - 1].projectState = 3;
             if (project.isSubscribed) {
-                uint start = project.start;
-                uint end = project.end;
-                requestDisperseData(
-                    true,
-                    start,
-                    end,
-                    _projectName,
-                    project.cid
-                );
+                requestRedispersal(_user, _projectName);
             }
         } else {
             if (project.expectedTimeofDispersal < block.timestamp && project.projectState == 1) {
@@ -94,8 +95,37 @@ contract CarbonMonitoringVerifier is
             }
         }
     }
-    
+
     /**
+     * Request a dispersal of project data that is already initialized
+     * 
+     * @param _user address of user
+     * @param _projectName user-defined name of project
+     */
+    function requestRedispersal(
+        address _user,
+        string memory _projectName
+    ) public {
+        require(
+            userDetails[msg.sender].whitelisted && userDetails[_user].whitelisted,
+            "user(s) not whitelisted"
+        );
+        string memory projectID = buildProjectID(_user, _projectName);
+        uint index = projectIndex[projectID];
+        require(index > 0, "project not found");
+        UserProject memory project = userDetails[_user].userProjects[index - 1];
+        requestDisperseData(
+            project.isSubscribed,
+            _user,
+            project.start,
+            project.end,
+            projectID,
+            project.cid
+        );
+    }
+
+    /**
+     * Request an initial dispersal of project data
      * 
      * @param _isSubscription boolean indicating if user is subscribed to project
      * @param _start timestamp in 's' of start of desired range
@@ -103,7 +133,7 @@ contract CarbonMonitoringVerifier is
      * @param _projectName user-defined name of project
      * @param _cid CID of uploaded KML file on IPFS
      */
-    function requestDisperseData(
+    function requestInitialDispersal(
         bool _isSubscription,
         uint _start,
         uint _end,
@@ -114,24 +144,52 @@ contract CarbonMonitoringVerifier is
             userDetails[msg.sender].whitelisted,
             "user not whitelisted"
         );
+        string memory projectID = buildProjectID(msg.sender, _projectName);
+        require(projectIndex[projectID] == 0, "project already exists");
+        requestDisperseData(
+            _isSubscription,
+            msg.sender,
+            _start,
+            _end,
+            projectID,
+            _cid
+        );
+    }
+    
+    /**
+     * Request a dispersal of project data
+     * 
+     * @param _isSubscription boolean indicating if user is subscribed to project
+     * @param _user address of user
+     * @param _start timestamp in 's' of start of desired range
+     * @param _end timestamp in 's' of end of desired range
+     * @param _projectID unique ID for project
+     * @param _cid CID of uploaded KML file on IPFS
+     */
+    function requestDisperseData(
+        bool _isSubscription,
+        address _user,
+        uint _start,
+        uint _end,
+        string memory _projectID,
+        string memory _cid
+    ) private {
         Chainlink.Request memory req = _buildOperatorRequest(
             DISPERSAL_JOB_ID,
             this.fulfillDisperseData.selector
         );
-        string memory projectID = buildProjectID(msg.sender, _projectName);
-        // string memory projectID = string(abi.encodePacked(Strings.toHexString(uint256(uint160(msg.sender)), 20), ":", _projectName));
-        req._add("projectID", projectID);
+        req._add("projectID", _projectID);
         req._add("cid", _cid);
         req._addUint("start", _start);
         req._addUint("end", _end);
         bytes32 reqID = _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
         jobRequests[reqID] = JobRequest({
-            user: msg.sender,
-            projectID: projectID
+            user: _user,
+            projectID: _projectID
         });
 
-        uint index = projectIndex[projectID];
-        UserProject[] storage userProjects = userDetails[msg.sender].userProjects;
+        uint index = projectIndex[_projectID];
+        UserProject[] storage userProjects = userDetails[_user].userProjects;
         if (index == 0) {
             userProjects.push(
                 UserProject({
@@ -139,21 +197,22 @@ contract CarbonMonitoringVerifier is
                     projectState: 1,
                     start: _start,
                     end: _end,
-                    expectedTimeofDispersal: block.timestamp + 2 minutes,
-                    expectedTimeofExpiry: block.timestamp + 10 days,
+                    expectedTimeofDispersal: block.timestamp + 15 minutes,
+                    expectedTimeofExpiry: 0,
                     cid: _cid,
                     dispersalRequestID: "",
                     lastUpdatedHeadCID: ""
                 })
             );
             index = userProjects.length;
-            projectIndex[projectID] = index;
+            projectIndex[_projectID] = index;
         }
         userProjects[index - 1].projectState = 1;
         userProjects[index - 1].cid = _cid;
     }
 
     /**
+     * Fulfill a request to disperse data
      * 
      * @param _requestId ID for Chainlink job request
      * @param _dispersalID ID for EigenDA dispersal request
@@ -176,12 +235,14 @@ contract CarbonMonitoringVerifier is
 
         UserProject storage project = userDetails[user].userProjects[index - 1];
         project.expectedTimeofDispersal = block.timestamp + 10 minutes;
+        project.expectedTimeofExpiry = block.timestamp + 10 minutes + 10 days;
         project.dispersalRequestID = _dispersalID;
         project.lastUpdatedHeadCID = _lastUpdatedHeadCID;
         delete jobRequests[_requestId];
     }
 
     /**
+     * Request confirmation of data availability
      * 
      * @param _user address of user
      * @param _projectName user-defined name of project
@@ -196,9 +257,8 @@ contract CarbonMonitoringVerifier is
             "user(s) not whitelisted"
         );
         string memory projectID = buildProjectID(_user, _projectName);
-        // string memory projectID = string(abi.encodePacked(Strings.toHexString(uint256(uint160(_user)), 20), ":", _projectName));
         uint index = projectIndex[projectID];
-        require(index > 0, "project not found");
+        require(index == 1, "project must be awaiting dispersal");
         require(
             userDetails[_user].userProjects[index - 1].expectedTimeofDispersal < block.timestamp,
             "please wait"
@@ -214,9 +274,9 @@ contract CarbonMonitoringVerifier is
             projectID: projectID
         });
     }
-    //  * @param _user address of user cast to uint256
-    //  * @param _projectID unique ID of project
+
     /**
+     * Fulfill a request to confirm data
      * 
      * @param _requestId ID of Chainlink job request
      * @param _isConfirmed boolean indicating if data is confirmed
@@ -231,7 +291,7 @@ contract CarbonMonitoringVerifier is
         if (_isConfirmed) {
             IProjectStorageVerifier(projectVerifier).verifyProjectStorageProof(_projectID);
             userDetails[user].userProjects[index - 1].projectState = 2;
-            userDetails[user].userProjects[index - 1].expectedTimeofExpiry = block.timestamp + 10 days;
+            // userDetails[user].userProjects[index - 1].expectedTimeofExpiry = block.timestamp + 10 days;
         }
         emit RequestConfirmDataFulfilled(
             _requestId,
@@ -279,6 +339,37 @@ contract CarbonMonitoringVerifier is
     //         sequestration: _seqData
     //     });
     // }
+
+    // /**
+    //  * Rename a project
+    //  * 
+    //  * @param _oldProjectName current user-defined name of project
+    //  * @param _newProjectName new user-defined name of project
+    //  */
+    // function renameProject(
+    //     string memory _oldProjectName,
+    //     string memory _newProjectName
+    // ) public {
+    //     require(
+    //         userDetails[msg.sender].whitelisted,
+    //         "user not whitelisted"
+    //     );
+    //     string memory projectID = buildProjectID(msg.sender, _oldProjectName);
+    //     uint index = projectIndex[projectID];
+    //     require(index > 0, "project not found");
+    //     string memory newProjectID = buildProjectID(msg.sender, _newProjectName);
+    //     projectIndex[newProjectID] = index;
+    //     delete projectIndex[projectID];
+    // }
+
+    /**
+     * Set the address of the ProjectStorageVerifier contract
+     * 
+     * @param _projectVerifier address of ProjectStorageVerifier contract
+     */
+    function setProjectVerifier(address _projectVerifier) external onlyOwner {
+        projectVerifier = _projectVerifier;
+    }
 
 
     function getChainlinkToken() public view returns (address) {
