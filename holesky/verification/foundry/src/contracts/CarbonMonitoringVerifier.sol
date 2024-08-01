@@ -12,10 +12,10 @@ import "../interfaces/IProjectStorageVerifier.sol";
 
 // import "forge-std/console.sol";
 
-/**
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
+// /
+//  * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+//  * DO NOT USE THIS CODE IN PRODUCTION.
+//  */
 
 contract CarbonMonitoringVerifier is
     ICarbonMonitoringVerifier,
@@ -127,7 +127,7 @@ contract CarbonMonitoringVerifier is
             _user,
             project.start,
             project.end,
-            projectID,
+            _projectName,
             project.cid
         );
     }
@@ -153,13 +153,13 @@ contract CarbonMonitoringVerifier is
             "user not whitelisted"
         );
         string memory projectID = buildProjectID(msg.sender, _projectName);
-        require(projectIndex[projectID] == 0, "project already exists");
+        require(projectIndex[projectID] == 0, "project name already exists");
         requestDisperseData(
             _isSubscription,
             msg.sender,
             _start,
             _end,
-            projectID,
+            _projectName,
             _cid
         );
     }
@@ -171,7 +171,7 @@ contract CarbonMonitoringVerifier is
      * @param _user address of user
      * @param _start timestamp in 's' of start of desired range
      * @param _end timestamp in 's' of end of desired range
-     * @param _projectID unique ID for project
+     * @param _projectName user-defined name of project
      * @param _cid CID of uploaded KML file on IPFS
      */
     function requestDisperseData(
@@ -179,24 +179,25 @@ contract CarbonMonitoringVerifier is
         address _user,
         uint _start,
         uint _end,
-        string memory _projectID,
+        string memory _projectName,
         string memory _cid
     ) private {
+        string memory projectID = buildProjectID(msg.sender, _projectName);
         Chainlink.Request memory req = _buildOperatorRequest(
             DISPERSAL_JOB_ID,
             this.fulfillDisperseData.selector
         );
-        req._add("projectID", _projectID);
+        req._add("projectID", projectID);
         req._add("cid", _cid);
         req._addUint("start", _start);
         req._addUint("end", _end);
         bytes32 reqID = _sendChainlinkRequestTo(OPERATOR_ADDRESS, req, ORACLE_PAYMENT);
         jobRequests[reqID] = JobRequest({
             user: _user,
-            projectID: _projectID
+            projectID: projectID
         });
 
-        uint index = projectIndex[_projectID];
+        uint index = projectIndex[projectID];
         UserProject[] storage userProjects = userDetails[_user].userProjects;
         if (index == 0) {
             userProjects.push(
@@ -207,13 +208,14 @@ contract CarbonMonitoringVerifier is
                     end: _end,
                     expectedTimeofDispersal: block.timestamp + 15 minutes,
                     expectedTimeofExpiry: 0,
+                    projectName: _projectName,
                     cid: _cid,
                     dispersalRequestID: "",
                     lastUpdatedHeadCID: ""
                 })
             );
             index = userProjects.length;
-            projectIndex[_projectID] = index;
+            projectIndex[projectID] = index;
         }
         userProjects[index - 1].projectState = 1;
         userProjects[index - 1].cid = _cid;

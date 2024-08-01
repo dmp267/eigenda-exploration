@@ -32,6 +32,7 @@ interface ICarbonMonitoringVerifier {
         uint end;
         uint expectedTimeofDispersal;
         uint expectedTimeofExpiry;
+        string projectName;
         string cid;
         string dispersalRequestID;
         string lastUpdatedHeadCID;
