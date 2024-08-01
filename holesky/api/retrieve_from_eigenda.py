@@ -2,7 +2,7 @@
 import json
 from http.server import BaseHTTPRequestHandler
 
-from retrieval_tools import retrieve_data
+from backend.retrieval_tools import retrieve_data
 
 # app = Flask(__name__)
 class Handler(BaseHTTPRequestHandler):
