@@ -1,6 +1,6 @@
 from flask import request, Flask, jsonify
 
-from retrieval_core import retrieve_data
+from tools.retrieval import retrieve_data
 
 app = Flask(__name__)
 

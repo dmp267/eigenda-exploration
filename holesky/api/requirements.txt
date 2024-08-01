@@ -1,0 +1,4 @@
+Flask==3.0.3
+grpc==1.62.2
+grpcio-tools==1.62.2
+web3==6.16.0
