@@ -13,7 +13,8 @@ DISPERSER = "disperser-holesky.eigenda.xyz:443"
 
 VERIFIER_CONTRACT_ADDRESS = os.environ.get('VERIFIER_CONTRACT_ADDRESS', '0x8032b4DBa3779B6836B4C69203bB1d3b4f92908B')
 RPC_URL = os.environ.get('RPC_URL', "https://ethereum-holesky-rpc.publicnode.com")
-ABI = json.load(open('abi/ProjectStorageVerifier.sol/ProjectStorageVerifier.json'))['abi']
+ABI_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'abi'))
+ABI = json.load(open(f'{ABI_DIR}/ProjectStorageVerifier.json'))['abi']
 
 channel = grpc.secure_channel(DISPERSER, grpc.ssl_channel_credentials())
 stub = DisperserStub(channel)
@@ -48,7 +49,6 @@ def remove_empty_byte_from_padded_bytes(data):
             valid_len = end - start + i * put_size
         valid_data[i * put_size: (i + 1) * put_size] = data[start: end]
     return bytes(valid_data[: valid_len])
-
 
 
 def decode_retrieval(data: bytes):

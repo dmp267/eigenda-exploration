@@ -1,4 +1,5 @@
-import { create } from 'ipfs-http-client';
+// import { create } from 'ipfs-http-client';
+const { create } = require('ipfs-http-client');
 
 export const config = {
   api: {
@@ -49,4 +50,4 @@ export default async function handler(req, res) {
     console.error('Error uploading file to IPFS:', error);
     res.status(500).json({ error: 'Failed to upload file to IPFS' });
   }
-};
+}
