@@ -1,0 +1,5 @@
+# Flask==3.0.3
+grpcio==1.62.2
+grpcio-tools==1.62.2
+# web3==6.16.0
+# werkzeug==3.0.3

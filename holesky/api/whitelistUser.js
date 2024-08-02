@@ -7,7 +7,7 @@ import path from 'path';
 const abiPath = path.resolve(process.cwd(), 'backend/abi', 'CarbonMonitoringVerifier.json');
 const abi = JSON.parse(fs.readFileSync(abiPath, 'utf8')).abi;
 
-const contractAddress = '0x8e513C3D12a2db352e7E3924661554D9da2C2c92';
+const contractAddress = '0x84cC6e1103B34f5A6298552f969AaFe1c5F78EEf';
 const providerUrl = process.env.PROVIDER_URL;
 const privateKey = process.env.PRIVATE_KEY;
 
@@ -38,4 +38,4 @@ export default async function handler(req, res) {
   }
 }
 
-// curl -H "Content-Type: application/json" -d '{"address": "0x6EfDb87F0Fd23Fd0c29afEe30e2567e3F2A26547"}' https://vercel-functions-test-wine.vercel.app/api/whitelistUser | jq
+// curl -H "Content-Type: application/json" -d '{"address": "0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1"}' https://vercel-functions-test-wine.vercel.app/api/whitelistUser | jq

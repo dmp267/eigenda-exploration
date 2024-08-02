@@ -1,8 +1,5 @@
-import json
-import os
+# import json
 import grpc
-from datetime import datetime
-from web3 import Web3
 
 from protobufs.disperser.disperser_pb2 import RetrieveBlobRequest
 from protobufs.disperser.disperser_pb2_grpc import DisperserStub
@@ -11,16 +8,8 @@ from protobufs.disperser.disperser_pb2_grpc import DisperserStub
 BYTES_PER_SYMBOL = 32
 DISPERSER = "disperser-holesky.eigenda.xyz:443"
 
-VERIFIER_CONTRACT_ADDRESS = os.environ.get('VERIFIER_CONTRACT_ADDRESS', '0x8032b4DBa3779B6836B4C69203bB1d3b4f92908B')
-RPC_URL = os.environ.get('RPC_URL', "https://ethereum-holesky-rpc.publicnode.com")
-ABI_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'abi'))
-ABI = json.load(open(f'{ABI_DIR}/ProjectStorageVerifier.json'))['abi']
-
 channel = grpc.secure_channel(DISPERSER, grpc.ssl_channel_credentials())
 stub = DisperserStub(channel)
-
-web3 = Web3(Web3.HTTPProvider(RPC_URL))
-chainId = web3.eth.chain_id
 
 
 def remove_empty_byte_from_padded_bytes(data):
@@ -68,7 +57,7 @@ def decode_retrieval(data: bytes):
     return result
 
 
-def retrieve_from_eigenda(batch_header_hash: str, blob_index: int):
+def retrieve_from_eigenda(batch_header_hash: bytes, blob_index: int):
     """
     Retrieve data from EigenDA.
 
@@ -86,44 +75,81 @@ def retrieve_from_eigenda(batch_header_hash: str, blob_index: int):
     return result
 
 
-def read_store_details(project_id: str):
-    """
-    Read the storage details of a carbon monitoring/management project from the smart contract.
+def retrieve_data(blob_index: int, batch_header_hash: bytes):
+    data = retrieve_from_eigenda(batch_header_hash, blob_index)
+    return data
 
-    Parameters:
-        project_id (str): The name of the project.
-
-    Returns:
-        dict: The storage details of the project.
-    """
-    contract = web3.eth.contract(address=VERIFIER_CONTRACT_ADDRESS, abi=ABI)
-    full_detail = contract.functions.readProjectStorageProof(project_id).call()
-    storage_detail = full_detail[1]
-    result = {
-        "last_updated_timestamp": datetime.fromtimestamp(int(storage_detail[0])),
-        "blob_index": int(storage_detail[2][1]), 
-        "batch_header_hash": storage_detail[1][2]
-    }
-    return result
+    # print(f'data length: {len(data)}')
+    # print(f'data type: {type(data)}')
+    # json_data = json.loads(data)
+    # print(f'json_data: {json_data}')
+    # return json_data
 
 
-def verify_on_chain(project_id: str):
-    """
-    Verify the storage details of a carbon monitoring/management project on the smart contract.
+# import os
+# from datetime import datetime
+# from web3 import Web3
 
-    Parameters:
-        project_id (str): The name of the project.
+# VERIFIER_CONTRACT_ADDRESS = os.environ.get('VERIFIER_CONTRACT_ADDRESS', '0x8032b4DBa3779B6836B4C69203bB1d3b4f92908B')
+# RPC_URL = os.environ.get('RPC_URL', "https://ethereum-holesky-rpc.publicnode.com")
+# ABI_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'abi'))
+# ABI = json.load(open(f'{ABI_DIR}/ProjectStorageVerifier.json'))['abi']
 
-    Returns:
-        bool: The verification status of the project.
-    """
-    contract = web3.eth.contract(address=VERIFIER_CONTRACT_ADDRESS, abi=ABI)
-    verification = contract.functions.verifyProjectStorageProof(project_id).call()
-    return verification
+# web3 = Web3(Web3.HTTPProvider(RPC_URL))
+# chainId = web3.eth.chain_id
 
 
-def retrieve_data(id: str):
-    verify_on_chain(id)
-    store_details = read_store_details(id)
-    data = retrieve_from_eigenda(store_details['batch_header_hash'], store_details['blob_index'])
-    return json.loads(data)
+# def read_store_details(project_id: str):
+#     """
+#     Read the storage details of a carbon monitoring/management project from the smart contract.
+
+#     Parameters:
+#         project_id (str): The name of the project.
+
+#     Returns:
+#         dict: The storage details of the project.
+#     """
+#     contract = web3.eth.contract(address=VERIFIER_CONTRACT_ADDRESS, abi=ABI)
+#     full_detail = contract.functions.readProjectStorageProof(project_id).call()
+#     storage_detail = full_detail[1]
+#     result = {
+#         "last_updated_timestamp": datetime.fromtimestamp(int(storage_detail[0])),
+#         "blob_index": int(storage_detail[2][1]), 
+#         "batch_header_hash": storage_detail[1][2]
+#     }
+#     # print(f'storage_detail: {result}')
+#     return result
+
+
+# def verify_on_chain(project_id: str):
+#     """
+#     Verify the storage details of a carbon monitoring/management project on the smart contract.
+
+#     Parameters:
+#         project_id (str): The name of the project.
+
+#     Returns:
+#         bool: The verification status of the project.
+#     """
+#     contract = web3.eth.contract(address=VERIFIER_CONTRACT_ADDRESS, abi=ABI)
+#     verification = contract.functions.verifyProjectStorageProof(project_id).call()
+#     return verification
+
+
+# def retrieve_data_2(id: str):
+#     """
+#     Retrieve data from EigenDA.
+
+#     Parameters:
+#         project_id (str): The name of the project.
+
+#     Returns:
+#         dict: The retrieved data.
+#     """
+#     verify_on_chain(id)
+#     store_details = read_store_details(id)
+#     data = retrieve_from_eigenda(store_details['batch_header_hash'], store_details['blob_index'])
+#     print(f'data length: {len(data)}')
+#     print(f'data type: {type(data)}')
+#     # print(f'json_data: {json_data}')
+#     return data
