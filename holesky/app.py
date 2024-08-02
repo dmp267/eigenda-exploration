@@ -126,6 +126,12 @@ def retrieve():
         example request:
 
         curl -H "Content-Type: application/json" -d '{"project_id": "0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1:QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb"}' http://127.0.0.1:5000/retrieve | jq
+        curl -H "Content-Type: application/json" -d '{"project_id": "0x9a15e32290A9C2C01f7C8740B4484024aC92F2a1:QmNdW3jkAgGLsAzeqHcrMHAoeCq6YpZyQqnG4ZLkXoSybb"}' http://127.0.0.1:6000/api/retrieve | jq
+
+        curl -H "Content-Type: application/json" -d '{"project_id": "0x2b1a71a9C165F847198F257161D92EDEC54c58D2:Test"}' https://vercel-functions-test-wine.vercel.app/api/retrieve
+        curl -H "Content-Type: application/json" -d '{"blob_index": "2437", "batch_header_hash": "0x9ffa72cd303db419944cbb5977dcc7d66ac58901fab9d8d27253b31f196269af"}' https://vercel-functions-test-wine.vercel.app/api/retrieve
+
+        curl -H "Content-Type: application/json" -d '{"blob_index": "5176", "batch_header_hash": "c476ba5b428b95e1b3ca7fd00cea5be389d8f0332602a62d59d0725171ebc9a6"}' https://vercel-functions-test-wine.vercel.app/api/retrieve
     """
     # data = request.get_json()['data']
     data = request.get_json()

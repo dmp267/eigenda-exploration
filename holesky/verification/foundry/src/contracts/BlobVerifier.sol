@@ -58,6 +58,18 @@ contract BlobVerifier is IBlobVerifier, AccessControl {
     }
 
 
+    // function updateStorageId(
+    //     string calldata id,
+    //     string calldata newId
+    // ) public onlyRole(SETTER_ROLE) {
+    //     uint index = storageDetailsIndex[id];
+    //     require(index > 0, "BlobVerifier: invalid id");
+    //     require(storageDetailsIndex[newId] == 0, "BlobVerifier: newId already exists");
+    //     storageDetailsIndex[newId] = index;
+    //     delete storageDetailsIndex[id];
+    // }
+
+
     function verifyAttestation(
         string memory id
     ) 

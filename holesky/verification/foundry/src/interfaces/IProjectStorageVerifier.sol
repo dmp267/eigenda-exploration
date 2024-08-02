@@ -15,7 +15,6 @@ interface IProjectStorageVerifier is IBlobVerifier {
 
 
     struct FullStore {
-        // mapping() projectStore;
         bool exists;
         IBlobVerifier.StorageDetail storageDetail;
     }
@@ -30,10 +29,12 @@ interface IProjectStorageVerifier is IBlobVerifier {
     ) external;
 
 
-    function verifyProjectStorageProof(string memory projectID) 
-        external;
+    function verifyProjectStorageProof(string memory projectID) external;
 
 
     function readProjectStorageProof(string calldata projectID) 
         external returns (FullStore memory);
+
+
+    // function updateProjectStorageId(string calldata projectID, string calldata newProjectID) external;
 }

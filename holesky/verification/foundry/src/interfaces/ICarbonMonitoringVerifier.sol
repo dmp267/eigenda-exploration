@@ -67,6 +67,9 @@ interface ICarbonMonitoringVerifier {
     function whitelistUser(address _user) external;
 
 
+    function unwhitelistUser(address _user) external;
+
+
     function updateProjectState(address _user, string memory _projectName) external;
 
 

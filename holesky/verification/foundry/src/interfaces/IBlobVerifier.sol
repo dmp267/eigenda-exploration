@@ -38,6 +38,9 @@ interface IBlobVerifier {
     ) external;
 
 
+    // function updateStorageId(string calldata id, string calldata newId) external;
+
+
     function verifyAttestation(
         string memory id
     ) external;

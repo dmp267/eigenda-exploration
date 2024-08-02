@@ -7,12 +7,6 @@ import "../interfaces/IProjectStorageVerifier.sol";
 // CURRENT DEPLOYED ADDRESS: 0x8032b4DBa3779B6836B4C69203bB1d3b4f92908B
 contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
 
-    // return type for readProjectStorageDetails
-    // struct FullStore {
-    //     ProjectStore projectStore;
-    //     StorageDetail storageDetail;
-    // }
-
     mapping(string => bool) public projects;
 
 
@@ -21,13 +15,9 @@ contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
 
     function uploadProjectStorageProof(
         string calldata projectID,
-        // string calldata lastUpdatedHeadCID,
         ModifiedBlobHeader calldata _blobHeader,
         EigenDARollupUtils.BlobVerificationProof calldata _blobVerificationProof
     ) external onlyRole(SETTER_ROLE) {
-        // if (projects[projectID].exists) {
-        //     require(block.timestamp - readStorageDetail(projectID).lastUpdatedTimestamp > 90 days, "ProjectStorageVerifier: project already updated within 90 days");
-        // }
 
         setStorageDetail(
             _blobHeader, 
@@ -35,10 +25,6 @@ contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
             projectID
         );
 
-        // projects[projectID] = ProjectStore({
-        //     exists: true,
-        //     lastUpdatedHeadCID: lastUpdatedHeadCID
-        // });
         projects[projectID] = true;
     }
 
@@ -57,14 +43,22 @@ contract ProjectStorageVerifier is IProjectStorageVerifier, BlobVerifier {
         view 
         returns (FullStore memory) 
     {
-        // return FullStore({
-        //     projectStore: projects[projectID],
-        //     storageDetail: readStorageDetail(projectID)
-        // });
         return FullStore({
             exists: projects[projectID],
             storageDetail: readStorageDetail(projectID)
         });
     }
+
+
+    // function updateProjectStorageId(string calldata projectID, string calldata newProjectID) 
+    //     external 
+    //     onlyRole(SETTER_ROLE) 
+    // {
+    //     require(projects[projectID], "ProjectStorageVerifier: invalid project");
+    //     require(!projects[newProjectID], "ProjectStorageVerifier: new project already exists");
+    //     updateStorageId(projectID, newProjectID);
+    //     projects[newProjectID] = true;
+    //     projects[projectID] = false;
+    // }
 
 }

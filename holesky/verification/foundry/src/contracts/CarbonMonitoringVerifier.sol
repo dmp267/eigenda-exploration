@@ -63,6 +63,15 @@ contract CarbonMonitoringVerifier is
         userDetails[_user].whitelisted = true;
     }
 
+    /**
+     * REmove a user address from the whitelist
+     * 
+     * @param _user address of user
+     */
+    function unwhitelistUser(address _user) external onlyOwner {
+        require(userDetails[_user].whitelisted, "user not whitelisted");
+        userDetails[_user].whitelisted = false;
+    }
 
     /**
      * Construct a projectID from a user address and project name
@@ -182,7 +191,7 @@ contract CarbonMonitoringVerifier is
         string memory _projectName,
         string memory _cid
     ) private {
-        string memory projectID = buildProjectID(msg.sender, _projectName);
+        string memory projectID = buildProjectID(_user, _projectName);
         Chainlink.Request memory req = _buildOperatorRequest(
             DISPERSAL_JOB_ID,
             this.fulfillDisperseData.selector
@@ -268,7 +277,8 @@ contract CarbonMonitoringVerifier is
         );
         string memory projectID = buildProjectID(_user, _projectName);
         uint index = projectIndex[projectID];
-        require(index == 1, "project must be awaiting dispersal");
+        uint projectState = userDetails[_user].userProjects[index - 1].projectState;
+        require(projectState == 1, "project must be awaiting dispersal");
         require(
             userDetails[_user].userProjects[index - 1].expectedTimeofDispersal < block.timestamp,
             "please wait"

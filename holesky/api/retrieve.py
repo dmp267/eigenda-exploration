@@ -55,7 +55,7 @@ class Handler(BaseHTTPRequestHandler):
 
         result = retrieve_data(blob_index, batch_header_hash)
         # print('final result length:', len(result))
-        final_encoded = json.dumps(result).encode()
+        final_encoded = result.encode()
         print('final_encoded length:', len(final_encoded))
         # else:
         #     result = retrieve_data_2(project_id)
